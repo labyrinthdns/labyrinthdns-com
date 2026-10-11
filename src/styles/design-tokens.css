@@ -1,38 +1,39 @@
-/* Labyrinth: paper, carbon and Ariadne's vermilion thread.
+/* Labyrinth: the purple monogram and gold thread from the supplied brand.
    Font variables are provided by next/font in the root layout. */
 
 :root {
-  --bg: #f3f0e8;
-  --surface: #faf8f2;
-  --raised: #eae6dc;
-  --fg: #25251f;
-  --muted: #68675e;
-  --primary: #b94320;
-  --accent: #b94320;
+  --bg: #f7f5fa;
+  --surface: #fdfcfe;
+  --raised: #eeebf4;
+  --fg: #130c24;
+  --muted: #6b6476;
+  --primary: #3b197d;
+  --accent: #a96100;
+  --brand-gold: #df880c;
   --success: oklch(50% 0.14 150);
   --warning: oklch(70% 0.15 80);
   --danger: oklch(52% 0.2 25);
-  --border: #d8d3c6;
-  --ring: #b94320;
+  --border: #ddd8e5;
+  --ring: #3b197d;
   --radius: 0.5rem;
   --shadow: 0 1px 2px oklch(0% 0 0 / 0.06);
 }
 
 .dark {
-  --bg: #181a17;
-  --surface: #20231e;
-  --raised: #2a2d26;
-  --fg: #f0ede3;
-  --muted: #a7aa9e;
-  --primary: #f68b5f;
-  --accent: #f68b5f;
+  --bg: #17131f;
+  --surface: #211a2c;
+  --raised: #2d243b;
+  --fg: #f5f1fc;
+  --muted: #b4aabe;
+  --primary: #c6a6ff;
+  --accent: #f3b54e;
   --success: oklch(72% 0.17 150);
   --warning: oklch(78% 0.15 80);
   --danger: oklch(66% 0.2 25);
-  --border: #373b30;
-  --ring: #f68b5f;
+  --border: #3b304a;
+  --ring: #c6a6ff;
   --radius: 0.5rem;
-  --shadow: 0 0 0 1px oklch(80% 0.16 88 / 0.25);
+  --shadow: 0 0 0 1px #c6a6ff40;
 }
 
 @theme inline {

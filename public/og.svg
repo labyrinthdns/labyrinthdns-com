@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630">
+  <rect width="1200" height="630" fill="#f7f5fa"/>
+  <path d="M80 80H1120" stroke="#ddd8e5"/>
+  <g transform="translate(80 104) scale(.48)">
+    <path fill="#3b197d" d="M31 10H18C12.5 10 8 14.5 8 20V152C8 157.5 12.5 162 18 162H111V145H25V27H31V10ZM38 10H51C56.5 10 61 14.5 61 20V110H126C131.5 110 136 114.5 136 120V137H119V127H54C48.5 127 44 122.5 44 117V27H38V10Z"/>
+    <circle cx="127" cy="153" r="9" fill="#df880c"/>
+  </g>
+  <text x="168" y="157" font-family="Arial,sans-serif" font-size="32" font-weight="800" fill="#130c24">LABYRINTH<tspan font-size="16" font-weight="400" fill="#6b6476"> DNS</tspan></text>
+  <text x="80" y="300" font-family="Arial,sans-serif" font-size="86" font-weight="600" letter-spacing="-4" fill="#130c24">Every query.</text>
+  <text x="80" y="398" font-family="Georgia,serif" font-size="86" font-style="italic" letter-spacing="-3" fill="#3b197d">A clear path.</text>
+  <circle cx="94" cy="468" r="6" fill="#df880c"/>
+  <text x="116" y="476" font-family="Arial,sans-serif" font-size="23" fill="#6b6476">Pure Go · Self-hosted · Zero dependencies</text>
+  <path d="M80 528H1120" stroke="#ddd8e5"/>
+  <text x="80" y="568" font-family="Arial,sans-serif" font-size="20" fill="#3b197d">labyrinthdns.com</text>
+  <g fill="none" stroke="#3b197d" stroke-width="10" opacity=".12">
+    <path d="M860 176H1110V440H860V236H1050V380H920V296H990"/>
+  </g>
+  <circle cx="990" cy="296" r="10" fill="#df880c"/>
+</svg>

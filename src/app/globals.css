@@ -196,7 +196,7 @@ body {
   scrollbar-color: var(--border) transparent;
 }
 
-/* Labyrinth identity: warm paper, carbon ink, a single vermilion thread. */
+/* Labyrinth identity: purple ink, pale paper, a single gold thread. */
 .eyebrow {
   font-family: var(--font-mono);
   font-size: 10px;
@@ -336,12 +336,12 @@ body {
   padding-top: 24px;
 }
 .resolver-art {
-  --maze-accent: #f18a60;
-  background: #22271f;
-  color: #e8eadc;
+  --maze-accent: #f3b54e;
+  background: #201532;
+  color: #f5f1fc;
   padding: 20px 24px 16px;
   position: relative;
-  border: 1px solid #3c4333;
+  border: 1px solid #48345f;
   box-shadow: 8px 8px 0 color-mix(in oklab, var(--fg) 7%, transparent);
 }
 .art-topline {
@@ -351,7 +351,7 @@ body {
   font-family: var(--font-mono);
   font-size: 9px;
   letter-spacing: 0.1em;
-  color: #a6af98;
+  color: #b9abc9;
   gap: 8px;
 }
 .art-topline > span:first-child {
@@ -374,18 +374,18 @@ body {
 }
 .record-switch {
   display: flex;
-  border: 1px solid #464d3e;
+  border: 1px solid #58466b;
 }
 .record-switch button {
   font-family: var(--font-mono);
   font-size: 10px;
   padding: 7px 10px;
-  color: #a6af98;
+  color: #b9abc9;
   cursor: pointer;
 }
 .record-switch button[aria-pressed="true"] {
-  background: #e8eadc;
-  color: #22271f;
+  background: #f5f1fc;
+  color: #201532;
 }
 .maze-stage {
   position: relative;
@@ -418,7 +418,7 @@ body {
   position: absolute;
   font-family: var(--font-mono);
   font-size: 8px;
-  color: #a6af98;
+  color: #b9abc9;
   letter-spacing: 0.08em;
 }
 .coordinate-start {
@@ -434,7 +434,7 @@ body {
   align-items: center;
   justify-content: space-between;
   gap: 12px;
-  border-top: 1px solid #414838;
+  border-top: 1px solid #48345f;
   padding-top: 16px;
   font-family: var(--font-mono);
   font-size: 10px;
@@ -443,30 +443,30 @@ body {
   display: flex;
   align-items: center;
   gap: 8px;
-  color: #c2cea9;
+  color: #c3d6a9;
 }
 .art-result i {
   background: #b5c693;
 }
 .art-result code {
-  color: #f18a60;
+  color: #f3b54e;
   font-size: 12px;
 }
 .art-result button {
-  border: 1px solid #4a5241;
+  border: 1px solid #58466b;
   padding: 7px;
-  color: #cbd2bd;
+  color: #ddd2ed;
   cursor: pointer;
   transition: background 0.2s;
 }
 .art-result button:hover {
-  background: #394030;
+  background: #3b2950;
 }
 .art-caption {
   display: flex;
   justify-content: space-between;
   gap: 8px;
-  color: #a6af98;
+  color: #b9abc9;
   margin-top: 14px;
   font-family: var(--font-mono);
   font-size: 8px;
@@ -593,7 +593,7 @@ footer::after {
   display: flex;
   justify-content: center;
   gap: 10px;
-  color: #b0ba9f;
+  color: #b9abc9;
   font-family: var(--font-mono);
   font-size: 10px;
   margin: 14px 0 24px;
