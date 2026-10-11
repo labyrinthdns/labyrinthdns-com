@@ -33,7 +33,9 @@ export default function DocsLayout({
           <div className="mb-8 lg:hidden">
             <DocsMobileNav />
           </div>
-          <main className="max-w-prose pb-10">{children}</main>
+          <main id="main-content" tabIndex={-1} className="max-w-prose pb-10">
+            {children}
+          </main>
         </div>
       </div>
       <SiteFooter />

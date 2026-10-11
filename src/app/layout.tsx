@@ -73,6 +73,7 @@ export default function RootLayout({
       className={`${inter.variable} ${playfair.variable} ${jetbrains.variable}`}
     >
       <body className="font-sans">
+        <a href="#main-content" className="skip-link">Skip to content</a>
         <ThemeProvider
           attribute="class"
           defaultTheme="light"

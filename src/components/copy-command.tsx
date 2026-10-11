@@ -81,7 +81,7 @@ export function CopyCommand({
   return (
     <div
       className={cn(
-        "flex items-center gap-3 rounded-lg border border-border bg-surface px-4 py-3 font-mono text-sm shadow-2",
+        "copy-command flex items-center gap-3 rounded-lg border border-border bg-surface px-4 py-3 font-mono text-sm shadow-2",
         className,
       )}
     >

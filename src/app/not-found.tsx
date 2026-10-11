@@ -7,7 +7,7 @@ export default function NotFound() {
   return (
     <>
       <SiteHeader />
-      <main className="not-found">
+      <main id="main-content" tabIndex={-1} className="not-found">
         <div className="not-found-meta">
           <span>HTTP / 404</span>
           <span>ROUTE UNRESOLVED</span>

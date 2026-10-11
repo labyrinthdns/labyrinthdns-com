@@ -12,6 +12,7 @@ import { Comparison } from "@/components/comparison";
 import { InstallSection } from "@/components/install-section";
 import { PromoPlate } from "@/components/promo-plate";
 import { SiteFooter } from "@/components/site-footer";
+import { QuickAnswers } from "@/components/quick-answers";
 
 // GitHub stars + latest release refresh every 6 hours via the fetch-level
 // revalidate in src/lib/github.ts — that drives this route's ISR (shown as
@@ -24,7 +25,7 @@ export default async function Home() {
   return (
     <>
       <SiteHeader stars={stats.stars} />
-      <main>
+      <main id="main-content" tabIndex={-1}>
         <Hero version={stats.version} />
         <StatsStrip />
         <Features />
@@ -34,6 +35,7 @@ export default async function Home() {
         <Performance />
         <RfcMatrix />
         <Comparison />
+        <QuickAnswers />
         <InstallSection version={stats.version} />
         <PromoPlate version={stats.version} />
       </main>

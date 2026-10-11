@@ -1,7 +1,13 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { AnimatePresence, motion, useReducedMotion } from "motion/react";
+import Link from "next/link";
+import {
+  AnimatePresence,
+  motion,
+  useInView,
+  useReducedMotion,
+} from "motion/react";
 import {
   Activity,
   Ban,
@@ -11,6 +17,7 @@ import {
   Pause,
   Play,
   Settings,
+  ArrowUpRight,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Reveal } from "@/components/reveal";
@@ -47,13 +54,10 @@ const initialRows: QueryRow[] = pool.slice(0, 5).map((row, i) => ({
 }));
 
 const sidebar = [
-  { icon: LayoutDashboard, label: "Dashboard", active: true },
-  { icon: ListTree, label: "Queries" },
-  { icon: Database, label: "Cache" },
-  { icon: Ban, label: "Blocklist" },
-  { icon: Activity, label: "Operations" },
-  { icon: Settings, label: "Config" },
-];
+  { icon: ListTree, label: "All queries", filter: "all" },
+  { icon: Database, label: "Cache hits", filter: "cache" },
+  { icon: Ban, label: "Blocked", filter: "blocked" },
+] as const;
 
 const statusStyle: Record<QueryStatus, string> = {
   ok: "border-success/30 bg-success/10 text-success",
@@ -76,12 +80,18 @@ export function DashboardMock() {
   const [playing, setPlaying] = useState(true);
   const [qpm, setQpm] = useState(1240);
   const [blocked, setBlocked] = useState(1204);
+  const [filter, setFilter] = useState<"all" | "cache" | "blocked">("all");
   const reduce = useReducedMotion();
+  const sectionRef = useRef<HTMLElement>(null);
+  const inView = useInView(sectionRef, { margin: "160px" });
   const counter = useRef(initialRows.length);
+  const visibleRows = rows.filter(
+    (row) => filter === "all" || row.status === filter,
+  );
 
   // Live query stream (client-side only; deterministic initial render).
   useEffect(() => {
-    if (!playing || reduce) return;
+    if (!playing || reduce || !inView) return;
     const timer = setInterval(() => {
       counter.current += 1;
       const next = pool[counter.current % pool.length];
@@ -90,21 +100,22 @@ export function DashboardMock() {
       );
     }, 1500);
     return () => clearInterval(timer);
-  }, [playing, reduce]);
+  }, [playing, reduce, inView]);
 
   // Slow drift on the headline counters.
   useEffect(() => {
-    if (reduce || !playing) return;
+    if (reduce || !playing || !inView) return;
     const timer = setInterval(() => {
       setQpm((v) => Math.max(900, v + Math.round((Math.random() - 0.45) * 90)));
       setBlocked((v) => (Math.random() > 0.6 ? v + 1 : v));
     }, 2000);
     return () => clearInterval(timer);
-  }, [reduce, playing]);
+  }, [reduce, playing, inView]);
 
   return (
     <section
       id="dashboard"
+      ref={sectionRef}
       className="scroll-mt-24 border-t border-border py-24"
     >
       <div className="mx-auto max-w-7xl px-4 sm:px-6">
@@ -145,28 +156,57 @@ export function DashboardMock() {
             <div className="grid md:grid-cols-[190px_1fr]">
               {/* Sidebar */}
               <nav
-                aria-label="Dashboard pages"
+                aria-label="Dashboard preview filters"
                 className="hidden flex-col gap-1 border-r border-border p-3 md:flex"
               >
+                <div className="demo-sidebar-title">
+                  <LayoutDashboard size={16} />
+                  <span>Query explorer</span>
+                </div>
+                <p className="demo-sidebar-label">FILTER THE PREVIEW</p>
                 {sidebar.map((item) => (
-                  <span
+                  <button
+                    type="button"
                     key={item.label}
-                    aria-current={item.active ? "page" : undefined}
+                    aria-pressed={filter === item.filter}
+                    onClick={() => setFilter(item.filter)}
                     className={cn(
                       "flex items-center gap-2.5 rounded-md px-3 py-2 text-sm",
-                      item.active
+                      filter === item.filter
                         ? "border-l-2 border-primary bg-raised font-medium text-fg"
                         : "border-l-2 border-transparent text-muted",
                     )}
                   >
                     <item.icon className="size-4" />
                     {item.label}
-                  </span>
+                  </button>
                 ))}
+                <div className="demo-reference">
+                  <p className="demo-sidebar-label">READ THE GUIDES</p>
+                  <Link href="/docs/monitoring">
+                    <Activity size={14} />
+                    Monitoring
+                    <ArrowUpRight size={12} />
+                  </Link>
+                  <Link href="/docs/configuration">
+                    <Settings size={14} />
+                    Configuration
+                    <ArrowUpRight size={12} />
+                  </Link>
+                </div>
               </nav>
 
               {/* Main */}
               <div className="p-4 sm:p-6">
+                <div className="demo-workspace-heading">
+                  <div>
+                    <p className="eyebrow">A window into your resolver</p>
+                    <h3>Every answer has a story.</h3>
+                  </div>
+                  <span className="demo-preview-badge">
+                    INTERACTIVE PREVIEW
+                  </span>
+                </div>
                 {/* Stat matrix */}
                 <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
                   <div className="rounded-lg border border-border bg-raised/40 p-4">
@@ -243,6 +283,22 @@ export function DashboardMock() {
                     </button>
                   </div>
 
+                  <div className="demo-filter-bar">
+                    <div role="group" aria-label="Query filters">
+                      {sidebar.map((item) => (
+                        <button
+                          key={item.filter}
+                          type="button"
+                          aria-pressed={filter === item.filter}
+                          onClick={() => setFilter(item.filter)}
+                        >
+                          {item.label}
+                        </button>
+                      ))}
+                    </div>
+                    <span>{visibleRows.length} shown</span>
+                  </div>
+
                   <div className="grid grid-cols-[1fr_auto] gap-x-4 border-b border-border/60 px-4 py-2 font-mono text-[10px] uppercase tracking-wider text-muted">
                     <span>Query</span>
                     <span className="text-right">Time · Status</span>
@@ -250,7 +306,7 @@ export function DashboardMock() {
 
                   <div className="h-[268px] overflow-hidden">
                     <AnimatePresence initial={false} mode="popLayout">
-                      {rows.map((row) => (
+                      {visibleRows.map((row) => (
                         <motion.div
                           key={row.id}
                           layout
@@ -282,6 +338,12 @@ export function DashboardMock() {
                         </motion.div>
                       ))}
                     </AnimatePresence>
+                    {visibleRows.length === 0 && (
+                      <p className="demo-empty">
+                        No matching queries in this preview window. Try another
+                        filter or resume the stream.
+                      </p>
+                    )}
                   </div>
                 </div>
               </div>

@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { Dialog } from "radix-ui";
 import { Menu, Star, X } from "lucide-react";
 import { motion, useScroll } from "motion/react";
@@ -14,14 +15,44 @@ import { ThemeToggle } from "@/components/theme-toggle";
 export function SiteHeader({ stars = site.stars }: { stars?: number }) {
   const [scrolled, setScrolled] = useState(false);
   const [open, setOpen] = useState(false);
+  const [activeSection, setActiveSection] = useState("");
+  const pathname = usePathname();
   const { scrollYProgress } = useScroll();
 
   useEffect(() => {
-    const onScroll = () => setScrolled(window.scrollY > 8);
+    const sections = navLinks
+      .filter((link) => link.href.startsWith("/#"))
+      .map((link) => ({
+        href: link.href,
+        element: document.getElementById(link.href.slice(2)),
+      }))
+      .filter((section) => section.element);
+    const onScroll = () => {
+      setScrolled(window.scrollY > 8);
+      const current = sections
+        .filter(
+          (section) =>
+            section.element!.getBoundingClientRect().top <=
+            window.innerHeight * 0.36,
+        )
+        .at(-1);
+      setActiveSection(current?.href ?? "");
+    };
     onScroll();
     window.addEventListener("scroll", onScroll, { passive: true });
-    return () => window.removeEventListener("scroll", onScroll);
-  }, []);
+    window.addEventListener("resize", onScroll);
+    return () => {
+      window.removeEventListener("scroll", onScroll);
+      window.removeEventListener("resize", onScroll);
+    };
+  }, [pathname]);
+
+  const currentLink = (href: string) =>
+    href === "/docs" && pathname.startsWith("/docs")
+      ? ("page" as const)
+      : href === activeSection
+        ? ("location" as const)
+        : undefined;
 
   return (
     <header
@@ -48,14 +79,13 @@ export function SiteHeader({ stars = site.stars }: { stars?: number }) {
 
         <nav className="hidden items-center gap-1 xl:flex" aria-label="Primary">
           {navLinks
-            .filter(
-              (link) => !["Dashboard", "RFCs", "Install"].includes(link.label),
-            )
+            .filter((link) => !["RFCs", "Install"].includes(link.label))
             .map((link) => (
               <a
                 key={link.href}
                 href={link.href}
-                className="rounded-md px-3 py-2 text-sm text-muted transition-colors hover:bg-surface hover:text-fg"
+                aria-current={currentLink(link.href)}
+                className="chapter-link rounded-md px-3 py-2 text-sm text-muted transition-colors hover:bg-surface hover:text-fg"
               >
                 {link.label}
               </a>

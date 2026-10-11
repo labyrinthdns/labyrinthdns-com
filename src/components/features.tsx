@@ -12,6 +12,7 @@ import {
 import { cn } from "@/lib/utils";
 import { Reveal } from "@/components/reveal";
 import { SectionHeading } from "@/components/section-heading";
+import { MazeGlyph } from "@/components/maze-glyph";
 
 type Feature = {
   icon: LucideIcon;
@@ -115,23 +116,44 @@ export function Features() {
   return (
     <section id="features" className="features-section scroll-mt-24 py-24">
       <div className="mx-auto max-w-7xl px-4 sm:px-6">
-        <Reveal>
-          <SectionHeading
-            eyebrow="01 · Features"
-            title={
-              <>
-                Small footprint.
-                <br />
-                <span className="font-display italic text-primary">
-                  Nothing left out.
-                </span>
-              </>
-            }
-            description="The resolver, the protection, the visibility. Everything ships together — no plugins to assemble or services to babysit."
-          />
-        </Reveal>
+        <div className="features-intro">
+          <Reveal>
+            <SectionHeading
+              eyebrow="01 · Features"
+              title={
+                <>
+                  Small footprint.
+                  <br />
+                  <span className="font-display italic text-primary">
+                    Nothing left out.
+                  </span>
+                </>
+              }
+              description="The resolver, the protection, the visibility. Everything ships together — no plugins to assemble or services to babysit."
+            />
+          </Reveal>
+          <Reveal delay={0.1}>
+            <div className="binary-blueprint">
+              <div className="binary-outline outline-back" />
+              <div className="binary-outline outline-middle" />
+              <div className="binary-face">
+                <span className="eyebrow">labyrinth / executable</span>
+                <MazeGlyph className="text-primary" />
+                <div>
+                  <strong>
+                    6.8 <span>MB</span>
+                  </strong>
+                  <span className="eyebrow">One file. Every layer.</span>
+                </div>
+              </div>
+              <span className="blueprint-caption">
+                RESOLVE / VALIDATE / OBSERVE
+              </span>
+            </div>
+          </Reveal>
+        </div>
 
-        <div className="mt-12 grid gap-x-10 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="mt-12 grid gap-x-8 sm:grid-cols-2 lg:grid-cols-4">
           {features.map((feature, i) => (
             <Reveal
               key={feature.title}
