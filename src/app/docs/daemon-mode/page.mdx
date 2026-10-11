@@ -1,0 +1,60 @@
+export const metadata = { title: "Daemon mode" };
+
+# Daemon mode
+
+Run Labyrinth in the foreground, as a background daemon, or as a systemd
+service — the same binary either way.
+
+## Foreground
+
+```bash
+sudo labyrinth -config labyrinth.yaml
+```
+
+## Background daemon
+
+```bash
+sudo labyrinth -config labyrinth.yaml daemon start
+sudo labyrinth -config labyrinth.yaml daemon status
+sudo labyrinth -config labyrinth.yaml daemon stop
+```
+
+Or with the config block in `labyrinth.yaml`:
+
+```yaml
+daemon:
+  enabled: false
+  pid_file: "/var/run/labyrinth.pid"
+```
+
+## Flags go before the command
+
+Go&rsquo;s flag parser stops at the first non-flag argument, so flags placed
+**after** `daemon` are not applied. This starts with your custom config:
+
+```bash
+labyrinth -config /etc/labyrinth/labyrinth.yaml daemon start
+```
+
+## systemd
+
+The install script sets up a systemd service that starts Labyrinth
+automatically. Binding `:53` needs privileges — the service handles that for
+you; running manually, either start as root or grant the binary the
+`CAP_NET_BIND_SERVICE` capability (standard Linux practice for privileged
+ports).
+
+## Signals
+
+| Signal | Action |
+| --- | --- |
+| `SIGINT` / `SIGTERM` | Graceful shutdown |
+| `SIGUSR1` | Flush the cache |
+| `SIGUSR2` | Dump cache stats to the log |
+| `SIGHUP` | Config reload notification |
+
+---
+
+Source: the
+[project README](https://github.com/labyrinthdns/labyrinth#cli). The
+capability note is general Linux practice, not project documentation.

@@ -1,0 +1,140 @@
+export const metadata = { title: "Configuration" };
+
+# Configuration
+
+Labyrinth works with zero configuration. For customization, create a
+`labyrinth.yaml` next to the binary — or let the setup wizard write one for
+you. Priority order:
+
+```text
+CLI flags > environment variables > YAML file > defaults
+```
+
+## labyrinth.yaml
+
+```yaml
+server:
+  listen_addr: "0.0.0.0:53"
+  metrics_addr: "127.0.0.1:9153"
+  tcp_timeout: 10s
+  # DNS-over-TLS (DoT, RFC 7858)
+  dot_enabled: true
+  dot_listen_addr: ":853"
+  tls_cert_file: "/etc/labyrinth/certs/dot.crt"
+  tls_key_file: "/etc/labyrinth/certs/dot.key"
+
+resolver:
+  max_depth: 30
+  qname_minimization: true
+  prefer_ipv4: true
+  dnssec_enabled: true
+
+cache:
+  max_entries: 100000
+  min_ttl: 5
+  max_ttl: 86400
+  serve_stale: false
+
+security:
+  rate_limit:
+    enabled: true
+    rate: 50
+    burst: 100
+  rrl:
+    enabled: true
+    responses_per_second: 5
+    slip_ratio: 2
+
+logging:
+  level: info
+  format: json
+
+web:
+  enabled: true
+  addr: "127.0.0.1:9153"
+  doh_enabled: true
+  doh3_enabled: false
+  tls_enabled: true
+  tls_cert_file: "/etc/labyrinth/certs/web.crt"
+  tls_key_file: "/etc/labyrinth/certs/web.key"
+  top_clients_limit: 2000
+  top_domains_limit: 2000
+  auto_update: true
+  update_check_interval: 24h
+  auth:
+    username: "admin"
+    password_hash: "$2a$10$..."  # from: labyrinth hash <password>
+
+blocklist:
+  enabled: true
+  # lists: "https://example.com/hosts|hosts"
+  refresh_interval: 24h
+  blocking_mode: nxdomain  # nxdomain, null_ip, custom_ip
+
+# access_control:
+#   allow: 127.0.0.0/8, 10.0.0.0/8, 192.168.0.0/16
+#   deny:
+
+# zabbix:
+#   enabled: true
+#   addr: "127.0.0.1:10050"
+
+# daemon:
+#   enabled: false
+#   pid_file: "/var/run/labyrinth.pid"
+```
+
+## CLI
+
+| Command or flag | Description |
+| --- | --- |
+| `check` | Validate the config file and exit |
+| `version` | Print version info |
+| `hash <password>` | Generate a bcrypt password hash |
+| `daemon start\|stop\|status` | Manage the background daemon — flags go **before** the command |
+| `-listen` | Listen address (default `:53`) |
+| `-web` | Web dashboard address (overrides config) |
+| `-metrics` | Metrics HTTP address |
+| `-config` | Config file path (default `labyrinth.yaml`) |
+| `-log-level` | `debug`, `info`, `warn` or `error` |
+| `-log-format` | `json` or `text` |
+| `-cache-size` | Max cache entries |
+| `-daemon` | Run as a background daemon |
+| `-version` | Print version and exit |
+
+## Environment variables
+
+Every YAML key maps to `LABYRINTH_<SECTION>_<KEY>`:
+
+```bash
+LABYRINTH_SERVER_LISTEN_ADDR=:53
+LABYRINTH_SERVER_METRICS_ADDR=127.0.0.1:9153
+LABYRINTH_LOGGING_LEVEL=debug
+LABYRINTH_CACHE_MAX_ENTRIES=200000
+LABYRINTH_RESOLVER_MAX_DEPTH=30
+```
+
+## Encrypted transports (DoT / DoH / DoH3)
+
+- **DoT (RFC 7858)** — `server.dot_enabled: true`, listening on
+  `server.dot_listen_addr` (default `:853`). Requires `server.tls_cert_file`
+  and `server.tls_key_file`.
+- **DoH (RFC 8484)** — `web.doh_enabled: true`, exposed at `GET/POST /dns-query`
+  on the web server.
+- **DoH3 (RFC 9114 transport)** — `web.doh3_enabled: true`; requires web TLS
+  terminated in Labyrinth itself, not at a reverse proxy.
+
+## Signals (Linux/macOS)
+
+| Signal | Action |
+| --- | --- |
+| `SIGINT` / `SIGTERM` | Graceful shutdown |
+| `SIGUSR1` | Flush the cache |
+| `SIGUSR2` | Dump cache stats to the log |
+| `SIGHUP` | Config reload notification |
+
+---
+
+Source: the
+[project README](https://github.com/labyrinthdns/labyrinth#configuration),
+which also carries the REST API and monitoring reference.

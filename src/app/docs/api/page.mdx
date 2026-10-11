@@ -1,0 +1,60 @@
+export const metadata = { title: "REST API" };
+
+# REST API
+
+Most `/api/*` endpoints require JWT authentication. Browsers authenticate via
+the `labyrinth_token` HttpOnly cookie set at login; programmatic clients send
+`Authorization: Bearer <token>`. Public endpoints in web mode include
+auth/setup, system health and version — plus `/dns-query` when DoH is enabled.
+
+## Endpoints
+
+| Method | Path | Description |
+| --- | --- | --- |
+| `POST` | `/api/auth/login` | Log in with your username and password; returns a JWT |
+| `GET` | `/api/auth/me` | Current user info |
+| `GET` | `/api/stats` | Real-time statistics |
+| `GET` | `/api/stats/timeseries?window=5m` | Time-bucketed stats for charts |
+| `WS` | `/api/queries/stream` | Live DNS query WebSocket stream |
+| `GET` | `/api/queries/recent?limit=50` | Recent queries |
+| `GET` | `/api/cache/stats` | Cache statistics |
+| `GET` | `/api/cache/lookup?name=X&type=A` | Cache entry lookup |
+| `POST` | `/api/cache/flush` | Flush the entire cache |
+| `DELETE` | `/api/cache/entry?name=X&type=A` | Delete a cache entry |
+| `GET` | `/api/config` | Running config (passwords redacted) |
+| `POST` | `/api/auth/change-password` | Change admin password |
+| `GET` | `/api/blocklist/stats` | Blocklist statistics |
+| `GET` | `/api/blocklist/lists` | Configured blocklist sources |
+| `POST` | `/api/blocklist/refresh` | Refresh all blocklists |
+| `POST` | `/api/blocklist/block` | Quick-block a domain |
+| `POST` | `/api/blocklist/unblock` | Unblock a domain |
+| `GET` | `/api/blocklist/check?domain=X` | Check whether a domain is blocked |
+| `GET` | `/api/system/health` | Health check |
+| `GET` | `/api/system/version` | Version info |
+| `GET` | `/api/system/update/check` | Check for updates |
+| `POST` | `/api/system/update/apply` | Apply an available update |
+| `GET` | `/api/setup/status` | Check whether the setup wizard is needed |
+| `POST` | `/api/setup/complete` | Complete the setup wizard |
+| `GET` | `/api/zabbix/items` | Zabbix metric key discovery |
+| `GET` | `/api/zabbix/item?key=X` | Single Zabbix metric value |
+| `GET` | `/metrics` | Prometheus metrics |
+| `GET` / `POST` | `/dns-query` | DNS-over-HTTPS endpoint (RFC 8484) |
+
+## Calling it from a script
+
+```bash
+# 1) Log in — POST /api/auth/login with your admin credentials as JSON —
+#    the response contains the token field.
+# 2) Use it:
+curl -s http://127.0.0.1:9153/api/stats \
+  -H "Authorization: Bearer $TOKEN"
+```
+
+> Prometheus `/metrics` is served on `server.metrics_addr` only when
+> `web.enabled` is false — otherwise it lives behind the authenticated web
+> server.
+
+---
+
+Source: the
+[project README](https://github.com/labyrinthdns/labyrinth#rest-api).

@@ -1,0 +1,45 @@
+export const metadata = { title: "Benchmark" };
+
+# Benchmark
+
+Numbers from `labyrinth-bench` on a single AMD Ryzen 9 9950X3D thread — and
+the tool to reproduce them on your own hardware.
+
+## Results
+
+| Operation | ops/sec | Latency |
+| --- | --- | --- |
+| Cache Get | 22M | 45 ns |
+| Cache Set | 19M | 53 ns |
+| Wire Unpack | 4.4M | 225 ns |
+| Wire Pack | 2.6M | 391 ns |
+| Name Decode | 22.6M | 44 ns |
+| FNV-1a Hash | 331M | 3 ns |
+| Full Resolve (cached) | 700K | 1.4 µs |
+
+Binary size: **6.8 MB** stripped, with the web dashboard embedded.
+
+## What is measured
+
+Single-thread microbenchmarks of the hot paths: the 256-shard cache, wire
+format packing and unpacking, name decoding, hashing, and an end-to-end
+cached resolve. The same code paths serve production traffic.
+
+## Run it yourself
+
+`labyrinth-bench` binaries ship with every release — Linux, macOS and
+Windows, amd64 and arm64, plus checksums:
+
+1. Download the `labyrinth-bench-<os>-<arch>` asset from the
+   [releases page](https://github.com/labyrinthdns/labyrinth/releases).
+2. Verify it against `checksums.txt`.
+3. Run it on the hardware you plan to deploy.
+
+> Throughput numbers scale with your hardware; the ratios between operations
+> are what to compare.
+
+---
+
+Source: the
+[project README](https://github.com/labyrinthdns/labyrinth#performance).
+See also: [Caching](/docs/caching/), [Performance tuning](/docs/performance-tuning/).

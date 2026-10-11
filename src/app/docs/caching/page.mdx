@@ -1,0 +1,61 @@
+export const metadata = { title: "Caching" };
+
+# Caching
+
+Most of Labyrinth's speed lives in the cache — a sharded, lock-striped
+store measured at 22M reads per second with 45 ns get latency.
+
+## Sharded by design
+
+The cache is split into 256 shards so reads scale across cores without lock
+contention. Identical in-flight queries are coalesced into a single upstream
+flight instead of stampeding the authoritative servers.
+
+| Operation | Throughput | Latency |
+| --- | --- | --- |
+| Cache get | 22M ops/s | 45 ns |
+| Cache set | 19M ops/s | 53 ns |
+| Full resolve (cached) | 700K ops/s | 1.4 µs |
+
+## TTL policy
+
+- `cache.min_ttl` / `cache.max_ttl` clamp every entry (defaults 5 s to
+  86 400 s).
+- Negative answers cache for `MIN(SOA TTL, SOA.MINIMUM)` per RFC 2308 §5.
+- Resolution failures cache separately per RFC 9520 — a dead nameserver does
+  not become a query storm.
+
+## Serving stale
+
+`cache.serve_stale` enables stale-while-refresh behaviour (RFC 8767 §3.1):
+under pressure, a stale entry is served immediately while a refresh runs in
+the background.
+
+## Aggressive synthesis
+
+Cached NSEC / NSEC3 proofs let Labyrinth synthesize NXDOMAIN and NODATA
+answers for any name the proof covers (RFC 8198) — negative space answers
+at cache speed.
+
+## Managing the cache
+
+```yaml
+cache:
+  max_entries: 100000
+  min_ttl: 5
+  max_ttl: 86400
+  serve_stale: false
+```
+
+- Dashboard **Cache** page: stats, per-entry lookup, delete single entries,
+  flush.
+- `SIGUSR1` flushes the cache; `SIGUSR2` dumps cache statistics to the log.
+- Prometheus exports hit/miss counters and the hit ratio; the dashboard's
+  Resolver Observability Panel shows stale-while-refresh and synthesis
+  counters with hit-ratio bars.
+
+---
+
+Source: the
+[project README](https://github.com/labyrinthdns/labyrinth). See also:
+[Performance tuning](/docs/performance-tuning/), [Monitoring](/docs/monitoring/).

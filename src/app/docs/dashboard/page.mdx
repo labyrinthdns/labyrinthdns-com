@@ -1,0 +1,52 @@
+export const metadata = { title: "Web dashboard" };
+
+# Web dashboard
+
+The web dashboard is built into the binary — no extra service to run. It binds
+to `http://127.0.0.1:9153` by default and ships with dark and light themes.
+
+## Setup wizard
+
+On first run (no config file), the dashboard walks you through setup:
+
+1. **Welcome** — server info and version
+2. **Admin account** — set username and password
+3. **Network** — configure listen address and dashboard address
+4. **DNS settings** — cache size, QNAME minimisation
+5. **Review & apply** — writes `labyrinth.yaml` automatically
+
+## Pages
+
+| Page | What it shows |
+| --- | --- |
+| **Dashboard** | Real-time stats in a compact matrix, 1-second chart redraws, paged top clients/domains (up to 2000), inline cache-query modal |
+| **Queries** | Live DNS query stream over WebSocket — filterable, pausable, with DNSSEC badges and blocked indicators |
+| **Cache** | Cache stats, lookup tool, flush, delete individual entries, negative cache view |
+| **Blocklist** | List management, quick block/unblock, domain check, source stats |
+| **Config** | Running configuration viewer, password change |
+| **Operations** | Live reliability monitoring with configurable thresholds and incident surfacing |
+| **Reports** | Operational snapshot exports — JSON, CSV, Markdown |
+| **About** | Project overview, build metadata, the RFC compliance matrix, release links and update controls |
+
+## Authentication
+
+- JWT-based — HMAC-SHA256 with 24-hour tokens
+- Browsers use a same-origin `HttpOnly`, `SameSite=Strict` session cookie;
+  Bearer tokens remain available for programmatic clients
+- Passwords are stored as bcrypt hashes
+
+Generate a hash for `web.auth.password_hash` with:
+
+```bash
+labyrinth hash "your-secure-password"
+```
+
+> The dashboard binds to `127.0.0.1` by default. Container examples
+> intentionally do not publish the admin port. For remote access, configure
+> non-empty `web.auth` credentials first, set `web.addr` explicitly, then put
+> TLS in front — see [Configuration](/docs/configuration/).
+
+---
+
+Source: the
+[project README](https://github.com/labyrinthdns/labyrinth#web-dashboard).

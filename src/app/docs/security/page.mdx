@@ -1,0 +1,67 @@
+export const metadata = { title: "Security" };
+
+# Security
+
+Labyrinth assumes it sits on a network that is occasionally hostile — to its
+cache, its CPU, and its dashboard — and closes the documented vectors.
+
+## Trust boundaries
+
+The resolver listens where you point it; the dashboard binds to
+`127.0.0.1:9153` by default. Before exposing the dashboard anywhere, set
+non-empty `web.auth` credentials and put TLS in front (or terminate it at an
+authenticated reverse proxy). Container examples intentionally do not
+publish the admin port.
+
+## Cache poisoning defenses
+
+- **Bailiwick enforcement** (RFC 5452 §3): out-of-bailiwick records in
+  referrals are sanitised, not trusted.
+- **DNS 0x20 case randomisation** (§6): the response must match the case of
+  the question.
+- **DNS cookies** (RFC 7873): server-cookie cache, BADCOOKIE retry, rotating
+  secrets.
+
+## DNSSEC validation
+
+Full chain verification from the root KSK — RSA-SHA1/256/512, ECDSA
+P-256/P-384 and ED25519 signatures, with Zone Key bit gating (RFC 4034
+§2.1), MUST-NOT algorithm refusal (RFC 8624 §3.1), and the NSEC3 iteration
+cap at 100 (RFC 9276 §3.2).
+
+## Abuse and resource controls
+
+```yaml
+security:
+  rate_limit:
+    enabled: true
+    rate: 50        # requests/second per source
+    burst: 100
+  rrl:
+    enabled: true
+    responses_per_second: 5
+    slip_ratio: 2
+```
+
+- ACL allow/deny lists refuse blocked clients with EDE 17 Filtered or EDE 18
+  Prohibited (RFC 8914).
+- Per-source TCP / DoT connection caps bound slowloris-style connections.
+- A per-delegation NS-name limit caps referral explosion.
+
+## CPU-exhaustion closures
+
+NSEC3 hash budgets and a salt-length ceiling close the documented
+CPU-exhaustion vectors of CVE-2023-50387 and CVE-2023-50868 — expensive
+cryptographic walks are bounded, not amplified.
+
+## Dashboard authentication
+
+JWT sessions (HMAC-SHA256, 24-hour tokens), bcrypt password hashes, and a
+same-origin `HttpOnly` `SameSite=Strict` cookie for browsers. Generate a
+hash with `labyrinth hash "your-secure-password"`.
+
+---
+
+Source: the
+[project README](https://github.com/labyrinthdns/labyrinth). See also:
+[Configuration](/docs/configuration/), [Troubleshooting](/docs/troubleshooting/).

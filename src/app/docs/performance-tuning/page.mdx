@@ -1,0 +1,72 @@
+export const metadata = { title: "Performance tuning" };
+
+# Performance tuning
+
+The defaults are already fast — a 6.8 MB binary serving from a 256-shard
+cache. Tune when your traffic or hardware says so, not before measuring.
+
+## Measure first
+
+- The dashboard **Operations** page surfaces reliability with configurable
+  thresholds.
+- Prometheus exports query duration histograms and cache hit/miss counters —
+  scrape `/metrics` and watch the hit ratio before resizing anything.
+- `labyrinth-bench` reproduces the reference numbers on your hardware.
+
+## Cache sizing
+
+```yaml
+cache:
+  max_entries: 100000   # ~ default; raise for busy networks
+  min_ttl: 5
+  max_ttl: 86400
+  serve_stale: false    # serve stale entries while refreshing under load
+```
+
+- `max_entries` bounds memory roughly linearly — more entries, more RAM,
+  higher hit ratio.
+- `min_ttl` clamps very short TTLs (protects against churning records);
+  `max_ttl` caps how long anything survives.
+- `serve_stale` trades a bounded staleness for availability during
+  upstream slowness (RFC 8767).
+
+## Resolver behaviour
+
+```yaml
+resolver:
+  max_depth: 30
+  qname_minimization: true
+  prefer_ipv4: true
+  dnssec_enabled: true
+```
+
+Keep `dnssec_enabled` on — validation is fast, and disabling it trades
+security for negligible latency. `qname_minimization` slightly increases
+upstream round trips while reducing information leakage.
+
+## Timeouts and limits
+
+```yaml
+server:
+  tcp_timeout: 10s
+web:
+  top_clients_limit: 2000
+  top_domains_limit: 2000
+```
+
+The top-N limits bound the per-client and per-domain leaderboards — larger
+values track more keys and use more memory in the dashboard.
+
+## Abuse controls
+
+Rate limiting and RRL cost almost nothing when idle and protect everything
+under load — leave them enabled (see [Security](/docs/security/)).
+
+> Beyond the config semantics above, this page is general operational
+> guidance; the authoritative reference for every key is the
+> [configuration page](/docs/configuration/).
+
+---
+
+Source: the
+[project README](https://github.com/labyrinthdns/labyrinth#configuration).

@@ -1,0 +1,50 @@
+export const metadata = { title: "Resolution" };
+
+# Resolution
+
+How Labyrinth turns a name into a validated answer. Recursive only — it
+never serves zones of its own; it navigates root, TLD and authoritative
+servers, and caches what it learns.
+
+## The iterative walk
+
+A query for `example.com` travels:
+
+1. The client asks Labyrinth on `:53` (UDP or TCP — or DoT/DoH).
+2. The blocklist is consulted first; a match is refused without touching the
+   network.
+3. The cache is checked per shard. A hit answers in microseconds.
+4. On a miss, Labyrinth walks the delegation chain — **root**, then the
+   **.com TLD**, then the **authoritative** server for the zone — following
+   referrals at each level.
+5. The answer and its signatures are validated against the DNSSEC chain
+   before anything is returned.
+
+The landing page renders this as an interactive trace: blocklist, cache,
+QNAME-minimised referrals, the RRSIG verdict, and the reply with the AD bit
+set — about 34 ms cold on a typical lookup.
+
+## QNAME minimisation (RFC 9156)
+
+At each level Labyrinth sends only the part of the name that level needs to
+answer — the root is asked for `com`, the TLD for `example.com`. Less of the
+query leaks to intermediate servers.
+
+## DNSSEC at every step
+
+Validation runs from the root KSK down: trust anchors, DS records at each
+delegation, RRSIGs on the answers. The AD bit is set only for answers that
+validate (RFC 4035 §3.2.2), DNSSEC records are stripped for non-DO clients
+(§3.2.1), and the CD bit is honoured on forwarding (RFC 6840 §5.9).
+
+## Aggressive NSEC / NSEC3 (RFC 8198)
+
+Negative answers are not just cached — they are *synthesized*. From a cached
+NSEC or NSEC3 proof, Labyrinth answers NXDOMAIN (§5.2) and NODATA (§5.4)
+for any name the proof covers, without asking anyone again.
+
+---
+
+Source: the
+[project README](https://github.com/labyrinthdns/labyrinth). See also:
+[Caching](/docs/caching/), [Wire protocol](/docs/wire-protocol/).

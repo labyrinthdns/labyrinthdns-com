@@ -1,0 +1,80 @@
+export const metadata = { title: "Quick start" };
+
+# Quick start
+
+Zero config to a DNSSEC-validated answer in about two minutes. If you have
+not installed yet, start with [Installation](/docs/installation/).
+
+## 1. Install
+
+```bash
+curl -sSL https://labyrinthdns.com/install.sh | bash
+```
+
+The installer sets up the binary, a default config and a systemd service.
+
+## 2. Start Labyrinth
+
+The service is already running after the install. To run it manually:
+
+```bash
+# Foreground
+sudo labyrinth -config labyrinth.yaml
+
+# Or fork to the background
+sudo labyrinth -config labyrinth.yaml daemon start
+```
+
+Labyrinth works with **zero configuration** — sane defaults for everything.
+
+## 3. Resolve something
+
+```bash
+dig @127.0.0.1 example.com A
+```
+
+You should get an answer with the `ad` flag — the response was DNSSEC
+validated end to end.
+
+## 4. Open the dashboard
+
+```text
+http://127.0.0.1:9153
+```
+
+On first run (no config file) the dashboard shows an interactive setup
+wizard:
+
+1. **Welcome** — server info and version
+2. **Admin account** — set username and password
+3. **Network** — listen address and dashboard address
+4. **DNS settings** — cache size, QNAME minimisation
+5. **Review & apply** — writes `labyrinth.yaml` automatically
+
+## 5. Set an admin password manually (optional)
+
+```bash
+labyrinth hash "your-secure-password"
+# $2a$10$K7L/FqkZ...hashed...password
+```
+
+```yaml
+web:
+  auth:
+    username: "admin"
+    password_hash: "$2a$10$..."   # from: labyrinth hash <password>
+```
+
+Browsers get a same-origin `HttpOnly` session cookie; Bearer tokens remain
+available for programmatic clients.
+
+## 6. Verify everything works
+
+- The dashboard&rsquo;s **Queries** page streams live queries over WebSocket
+- **Cache** shows hit ratios and lets you inspect or flush entries
+- `labyrinth -version` reports the build
+
+---
+
+Next: [Configuration](/docs/configuration/) for the full `labyrinth.yaml`
+reference.

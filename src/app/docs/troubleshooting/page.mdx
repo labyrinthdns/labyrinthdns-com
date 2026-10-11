@@ -1,0 +1,86 @@
+export const metadata = { title: "Troubleshooting" };
+
+# Troubleshooting
+
+A short path from "something is off" to the log line that says why.
+
+## First checks
+
+```bash
+labyrinth -version      # is the binary there and current?
+labyrinth check         # validates the config file and exits
+```
+
+```text
+GET http://127.0.0.1:9153/api/system/health   → 200 when healthy
+```
+
+Then logs — `logging.level: debug` for a window, structured JSON by default.
+
+## Dashboard not reachable
+
+The dashboard binds to `127.0.0.1:9153` **by design**. From another host,
+that address is wrong by definition:
+
+1. Set non-empty `web.auth` credentials first — always before exposure.
+2. Set `web.addr` explicitly (for example `0.0.0.0:9153`).
+3. Put TLS in front, or enable `web.tls_enabled`.
+
+## Permission denied on :53
+
+Port 53 is privileged. The installer&rsquo;s systemd service binds it
+correctly; running manually, start as root or grant `CAP_NET_BIND_SERVICE`
+(general Linux practice).
+
+## DoT not listening on :853
+
+`server.dot_enabled: true` alone is not enough — DoT also requires
+`server.tls_cert_file` and `server.tls_key_file`. Without both, the listener
+stays down.
+
+## Flags after `daemon` are ignored
+
+Go&rsquo;s flag parser stops at the command. `labyrinth daemon start
+-config X` does not apply the config — write `labyrinth -config X daemon
+start` instead.
+
+## Answers missing the AD bit
+
+`dig @127.0.0.1 example.com` should return the `ad` flag. If not:
+
+- `resolver.dnssec_enabled` must be true.
+- The client must set the DO bit (modern `dig` does by default).
+- A validating resolver sets AD only for answers that validated — check the
+  upstream chain before assuming a local fault.
+
+## Blocklist not blocking
+
+- `blocklist.enabled: true` and the source list is configured?
+- `blocking_mode` selects the answer given (`nxdomain`, `null_ip`,
+  `custom_ip`).
+- Check a domain from the dashboard Blocklist page, or
+  `GET /api/blocklist/check?domain=example.net`.
+- Large lists take time to load — the refresh runs every
+  `refresh_interval`.
+
+## Cache behaving strangely
+
+- `SIGUSR1` flushes; `SIGUSR2` dumps cache statistics to the log.
+- The dashboard Cache page shows hit ratios, negative entries, and lets you
+  delete single entries.
+- Negative answers live by RFC 2308 §5 TTLs — short by design.
+
+## Still stuck
+
+The dashboard **Operations** page surfaces incidents against configurable
+thresholds, and [Monitoring](/docs/monitoring/) covers the Prometheus and
+Zabbix views. Open an issue with the log excerpt and your
+`labyrinth check` output.
+
+> Beyond the documented behaviour above, the privilege and DNSSEC notes are
+> general operational practice.
+
+---
+
+Source: the
+[project README](https://github.com/labyrinthdns/labyrinth).

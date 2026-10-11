@@ -1,0 +1,91 @@
+export const metadata = { title: "Installation" };
+
+# Installation
+
+Labyrinth ships as a single static binary — pick whichever install method fits
+your environment. All of them end with the same result: a `labyrinth`
+executable and a dashboard at `http://127.0.0.1:9153`.
+
+## One-line install (Linux/macOS, as root)
+
+```bash
+curl -sSL https://labyrinthdns.com/install.sh | bash
+```
+
+`labyrinthdns.com/install.sh` is a thin launcher: it fetches the current
+installer from the labyrinthdns/labyrinth repository and executes it,
+forwarding every flag. The installer downloads the latest release, installs
+the binary, creates a default config, sets up a systemd service and starts
+Labyrinth. Open the dashboard **from the installed host** to complete the
+setup wizard:
+
+```text
+http://127.0.0.1:9153
+```
+
+### Installer flags
+
+```bash
+# Install without the systemd service
+curl -sSL https://labyrinthdns.com/install.sh | \
+  bash -s -- --no-service
+
+# Install a specific version
+curl -sSL https://labyrinthdns.com/install.sh | \
+  bash -s -- --version v0.8.36
+
+# Uninstall
+curl -sSL https://labyrinthdns.com/uninstall.sh | bash
+```
+
+## Docker (GHCR)
+
+```bash
+docker pull ghcr.io/labyrinthdns/labyrinth:latest
+docker run -p 53:53/udp -p 53:53/tcp \
+  -v "$PWD/labyrinth.yaml:/etc/labyrinth/labyrinth.yaml:ro" \
+  ghcr.io/labyrinthdns/labyrinth:latest \
+  -config /etc/labyrinth/labyrinth.yaml
+```
+
+A `docker compose up -d` stack works the same way. The admin port **9153 is
+intentionally not published** in these examples: configure non-empty
+`web.auth` credentials — and TLS, or an authenticated reverse proxy — before
+you expose it.
+
+## Build from source
+
+Prerequisites: Go 1.26.5 or later, Node.js 22+ with npm.
+
+```bash
+git clone https://github.com/labyrinthdns/labyrinth.git
+cd labyrinth
+
+# Build the embedded dashboard first
+cd web/ui && npm ci && npm run build && cd ../..
+
+# Static binary, no cgo
+CGO_ENABLED=0 go build -ldflags="-s -w" -o labyrinth .
+```
+
+## Manual binary download
+
+Pre-built binaries for Linux, macOS and Windows (amd64 / arm64) plus checksums
+are attached to every release on the
+[releases page](https://github.com/labyrinthdns/labyrinth/releases).
+
+## Verify the installation
+
+```bash
+labyrinth -version
+dig @127.0.0.1 example.com A
+```
+
+`dig` should return an answer with the AD (authenticated data) bit set — the
+response was validated against the root trust chain. Then open
+`http://127.0.0.1:9153` and finish the setup wizard.
+
+---
+
+Next: [Quick start](/docs/quick-start/). Source: the
+[project README](https://github.com/labyrinthdns/labyrinth#quick-install).

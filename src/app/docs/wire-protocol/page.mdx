@@ -1,0 +1,54 @@
+export const metadata = { title: "Wire protocol" };
+
+# Wire protocol
+
+What Labyrinth puts on the wire — classic DNS plus the modern extras, each
+pinned by the RFC tests described in the standards matrix.
+
+## Message basics
+
+- UDP and TCP on `:53`, with TCP pipelining and bounded idle timeouts
+  (RFC 7766 §6.2).
+- Standard RFC 1034 / 1035 message structure — header, question, answer,
+  authority, additional sections.
+- Label and name length caps enforced: 63 octets per label, 255 per name
+  (RFC 1035 §2.3.4).
+- The AA bit is always clear on resolver responses (RFC 1034 §3.7) — a
+  recursive resolver never claims authority it does not have.
+- Unknown record types are handled transparently (RFC 3597); AAAA (RFC 3596)
+  and SVCB / HTTPS (RFC 9460) records pass through first-class.
+
+## EDNS0
+
+| Option | Behaviour |
+| --- | --- |
+| Extended RCODEs | BADCOOKIE / BADVERS pack and unpack (RFC 6891 §6.1.3) |
+| edns-tcp-keepalive | Full (RFC 7828) |
+| Padding | 468-byte block on DoT / DoH (RFC 7830 + 8467) |
+| Client Subnet (ECS) | Full (RFC 7871) |
+
+## Cookies (RFC 7873)
+
+Client and server cookies are tracked with a server-cookie cache; a
+BADCOOKIE response triggers a retry with the fresh cookie (§5.2–5.4), and
+cookie secrets rotate on schedule (§5.5).
+
+## Case randomisation
+
+Query names are randomised between upper and lower case (DNS 0x20,
+RFC 5452 §6) and matched on return — an extra check that a response belongs
+to the question that was asked.
+
+## Encrypted transports
+
+- **DoT** — RFC 7858, `:853`, requires TLS certificates.
+- **DoH** — RFC 8484, `GET/POST /dns-query` on the web server.
+- **DoH3** — HTTP/3 transport for DoH, requires web TLS terminated in
+  Labyrinth.
+- **DoQ** — RFC 9250 is not implemented yet.
+
+---
+
+Source: the
+[project README](https://github.com/labyrinthdns/labyrinth#rfc-compliance).
+See also: [Resolution](/docs/resolution/), [Security](/docs/security/).

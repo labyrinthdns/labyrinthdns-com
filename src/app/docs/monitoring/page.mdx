@@ -1,0 +1,69 @@
+export const metadata = { title: "Monitoring" };
+
+# Monitoring
+
+Labyrinth observes itself three ways: Prometheus metrics, a Zabbix agent, and
+structured logging with a WebSocket query stream.
+
+## Prometheus
+
+Scrape the metrics endpoint:
+
+```text
+http://labyrinth:9153/metrics
+```
+
+Counters, histograms and gauges include:
+
+```text
+labyrinth_queries_total{type="A"} 28041
+labyrinth_cache_hits_total 18294
+labyrinth_cache_misses_total 9747
+labyrinth_query_duration_seconds_bucket{le="0.001"} 15000
+labyrinth_uptime_seconds 86400
+```
+
+## Zabbix
+
+Two integration modes:
+
+**HTTP agent** (recommended) — configure Zabbix items to poll:
+
+```text
+http://labyrinth:9153/api/zabbix/item?key=labyrinth.cache.hit_ratio
+```
+
+**Native agent** — enable `zabbix.addr` in the config for the native Zabbix
+agent protocol on TCP port 10050.
+
+Available keys:
+
+```text
+labyrinth.queries.total
+labyrinth.cache.hits
+labyrinth.cache.misses
+labyrinth.cache.hit_ratio
+labyrinth.cache.entries
+labyrinth.upstream.queries
+labyrinth.upstream.errors
+labyrinth.uptime
+labyrinth.goroutines
+```
+
+## Health checks
+
+| Endpoint | Returns |
+| --- | --- |
+| `GET /api/system/health` | 200 with JSON when healthy |
+| `GET /api/system/version` | Version, build time, Go version |
+
+## Logs
+
+Structured JSON or text logging via `logging.format` — see
+[Configuration](/docs/configuration/). The dashboard&rsquo;s Operations page
+surfaces reliability incidents from the same counters.
+
+---
+
+Source: the
+[project README](https://github.com/labyrinthdns/labyrinth#monitoring).
