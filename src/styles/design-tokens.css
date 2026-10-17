@@ -2,6 +2,15 @@
    Font variables are provided by next/font in the root layout. */
 
 :root {
+  --layout-max: 1728px;
+  --layout-gutter: clamp(20px, 4vw, 96px);
+  --layout-gap: clamp(24px, 3.5vw, 64px);
+  --section-space: clamp(64px, 5vw, 112px);
+  --section-content-gap: clamp(32px, 3vw, 48px);
+  --panel-padding: clamp(24px, 2.5vw, 48px);
+  --measure-copy: 62ch;
+  --measure-heading: 24ch;
+  --measure-docs: 68rem;
   --bg: #f7f5fa;
   --surface: #fdfcfe;
   --raised: #eeebf4;

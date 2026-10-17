@@ -72,7 +72,7 @@ export function StatsStrip() {
       aria-label="Key numbers"
       className="border-y border-border bg-surface/40"
     >
-      <div className="mx-auto max-w-7xl px-4 sm:px-6">
+      <div className="site-container">
         <div className="grid grid-cols-2 divide-x divide-border/60 sm:grid-cols-3 lg:grid-cols-6">
           {stats.map((stat) => (
             <StatCell key={stat.label} stat={stat} />

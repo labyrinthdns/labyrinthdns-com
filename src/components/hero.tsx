@@ -13,7 +13,7 @@ export function Hero({ version = site.version }: { version?: string }) {
   const [running, setRunning] = useState(true);
   const [record, setRecord] = useState<"A" | "AAAA">("A");
   return (
-    <section id="top" className="hero-section">
+    <section id="top" className="site-container hero-section">
       <div className="hero-kicker">
         <span>
           <i /> Independent by design.

@@ -56,8 +56,8 @@ function Mark({ mark }: { mark: Cell["mark"] }) {
 
 export function Comparison() {
   return (
-    <section className="border-t border-border py-24">
-      <div className="mx-auto max-w-6xl px-4 sm:px-6">
+    <section className="border-t border-border section-space">
+      <div className="site-container">
         <Reveal>
           <SectionHeading
             eyebrow="06 · Positioning"

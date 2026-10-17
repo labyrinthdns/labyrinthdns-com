@@ -68,7 +68,7 @@ export function SiteHeader({ stars = site.stars }: { stars?: number }) {
         className="reading-progress"
         style={{ scaleX: scrollYProgress }}
       />
-      <div className="mx-auto flex h-16 max-w-7xl items-center justify-between gap-4 px-4 sm:px-6">
+      <div className="site-container flex h-16 items-center justify-between gap-4">
         <Link
           href="/"
           aria-label="Labyrinth DNS — back to top"

@@ -1,0 +1,180 @@
+/* Shared page geometry. Reading measures stay independent of canvas width. */
+.site-container {
+  width: min(calc(100% - 2 * var(--layout-gutter)), var(--layout-max));
+  margin-inline: auto;
+  min-width: 0;
+}
+.site-container > * {
+  min-width: 0;
+}
+.section-space {
+  padding-block: var(--section-space);
+}
+.reading-copy {
+  max-width: var(--measure-copy);
+}
+.section-panel {
+  margin-top: var(--section-content-gap);
+}
+.section-heading > h2 {
+  max-width: var(--measure-heading);
+}
+.section-heading > p:last-child {
+  max-width: var(--measure-copy);
+}
+.section-heading.text-center > :is(h2, p:last-child) {
+  margin-inline: auto;
+}
+.footer-content {
+  padding-block: clamp(48px, 4vw, 80px);
+}
+.hero-section .hero-layout {
+  gap: var(--layout-gap);
+  padding-block: clamp(36px, 4vw, 72px);
+}
+.hero-section .resolver-art {
+  width: 100%;
+  max-width: 720px;
+  justify-self: end;
+}
+.hero-section .maze-stage {
+  max-width: 560px;
+}
+.hero-description,
+.hero-install {
+  max-width: min(100%, 640px);
+}
+.site-container
+  :is(
+    .features-intro,
+    .quick-answers-layout,
+    .nothingdns-promo,
+    .lost-layout,
+    .outro-invitation
+  ) {
+  gap: var(--layout-gap);
+}
+.nothingdns-copy-column .nothingdns-description {
+  max-width: var(--measure-copy);
+}
+.resolution-diagram {
+  height: 420px;
+  margin-top: var(--section-content-gap);
+}
+.docs-content {
+  width: 100%;
+  max-width: var(--measure-docs);
+}
+.docs-content :where(p, ul:not(.grid), ol, blockquote) {
+  max-width: 70ch;
+}
+.docs-content :where(pre, table) {
+  max-width: 100%;
+}
+.docs-layout > *,
+.docs-body {
+  min-width: 0;
+}
+
+@media (min-width: 640px) {
+  .resolution-diagram {
+    height: 480px;
+  }
+}
+@media (min-width: 1024px) {
+  .docs-layout {
+    display: grid;
+    grid-template-columns: 224px minmax(0, 1fr);
+    gap: var(--layout-gap);
+  }
+  .resolution-diagram {
+    height: 520px;
+  }
+}
+@media (min-width: 1280px) {
+  .section-split {
+    display: grid;
+    grid-template-columns: minmax(0, 0.8fr) minmax(0, 1.4fr);
+    column-gap: var(--layout-gap);
+    align-items: start;
+  }
+  .section-split .section-heading {
+    margin-inline: 0;
+    text-align: left;
+  }
+  .section-split .section-heading > :is(h2, p:last-child) {
+    margin-inline: 0;
+  }
+  .section-split .section-panel {
+    margin-top: 0;
+  }
+  .section-split > :nth-child(n + 3) {
+    grid-column: 2;
+  }
+}
+@media (min-width: 1440px) {
+  .resolution-workspace {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(300px, 0.4fr);
+    column-gap: 24px;
+  }
+  .resolution-workspace > :first-child,
+  .resolution-workspace > :last-child {
+    grid-column: 1 / -1;
+  }
+  .resolution-details {
+    margin-top: var(--section-content-gap);
+  }
+  .resolution-details > div {
+    margin-top: 0;
+    height: 520px;
+    flex-direction: column;
+  }
+  .resolution-details > div > div:first-child {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .resolution-details [role="log"] {
+    height: auto;
+    min-height: 0;
+    font-size: 12px;
+  }
+  .studio-credit .studio-credit-inner {
+    padding: var(--panel-padding);
+    grid-template-columns: 170px minmax(0, 1fr) minmax(300px, 0.8fr);
+    gap: var(--layout-gap);
+  }
+  .studio-credit .studio-projects {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .studio-credit .studio-projects > p {
+    grid-column: 1 / -1;
+  }
+}
+@media (max-width: 1023px) {
+  .hero-section .hero-layout {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .hero-section .resolver-art {
+    max-width: 600px;
+    margin-inline: auto;
+    justify-self: center;
+  }
+}
+@media (max-width: 767px) {
+  .hero-section .hero-layout {
+    gap: 36px;
+  }
+}
+@media (max-width: 639px) {
+  .hero-actions .editorial-button {
+    gap: 16px;
+    padding: 14px 16px;
+    font-size: 12px;
+    min-height: 44px;
+  }
+  .hero-actions .text-link {
+    font-size: 12px;
+  }
+}

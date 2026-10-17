@@ -11,6 +11,7 @@ import {
   useNodesState,
   type EdgeTypes,
   type NodeTypes,
+  type ReactFlowInstance,
 } from "@xyflow/react";
 import "@xyflow/react/dist/style.css";
 import { useTheme } from "next-themes";
@@ -220,6 +221,7 @@ function logColor(log: string): string {
 }
 
 const pad = (n: number) => String(n).padStart(2, "0");
+const fitViewOptions = { padding: 0.18, maxZoom: 1 };
 
 /* ---- Component ------------------------------------------------------- */
 
@@ -232,6 +234,11 @@ export function ResolutionFlow() {
   const [playing, setPlaying] = useState(false);
   const started = useRef(false);
   const logRef = useRef<HTMLDivElement>(null);
+  const canvasRef = useRef<HTMLDivElement>(null);
+  const flowInstance = useRef<ReactFlowInstance<
+    TraceNode,
+    ThreadEdgeType
+  > | null>(null);
 
   const sectionRef = useRef<HTMLElement>(null);
   const inView = useInView(sectionRef, { once: true, margin: "-120px" });
@@ -242,6 +249,24 @@ export function ResolutionFlow() {
     () => true,
     () => false,
   );
+
+  // Refit only when the canvas changes size, preserving manual pan/zoom otherwise.
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    let frame = 0;
+    const observer = new ResizeObserver(() => {
+      cancelAnimationFrame(frame);
+      frame = requestAnimationFrame(() => {
+        void flowInstance.current?.fitView(fitViewOptions);
+      });
+    });
+    observer.observe(canvas);
+    return () => {
+      observer.disconnect();
+      cancelAnimationFrame(frame);
+    };
+  }, []);
 
   // Auto-start once the diagram scrolls into view (never for reduced motion).
   useEffect(() => {
@@ -319,9 +344,9 @@ export function ResolutionFlow() {
     <section
       id="resolution"
       ref={sectionRef}
-      className="scroll-mt-24 border-t border-border py-24"
+      className="scroll-mt-24 border-t border-border section-space"
     >
-      <div className="mx-auto max-w-7xl px-4 sm:px-6">
+      <div className="site-container resolution-workspace">
         <Reveal>
           <SectionHeading
             eyebrow="03 · Interactive"
@@ -330,9 +355,15 @@ export function ResolutionFlow() {
           />
         </Reveal>
 
-        <Reveal delay={0.1}>
-          <div className="relative mt-12 h-[420px] overflow-hidden rounded-xl border border-border bg-surface/60 sm:h-[480px] lg:h-[520px]">
+        <Reveal delay={0.1} className="resolution-canvas">
+          <div
+            ref={canvasRef}
+            className="resolution-diagram relative overflow-hidden rounded-xl border border-border bg-surface/60"
+          >
             <ReactFlow
+              onInit={(instance) => {
+                flowInstance.current = instance;
+              }}
               nodes={nodes}
               edges={edges}
               onNodesChange={onNodesChange}
@@ -341,8 +372,8 @@ export function ResolutionFlow() {
               edgeTypes={edgeTypes}
               colorMode={mounted && resolvedTheme === "dark" ? "dark" : "light"}
               fitView
-              fitViewOptions={{ padding: 0.18, maxZoom: 1 }}
-              minZoom={0.4}
+              fitViewOptions={fitViewOptions}
+              minZoom={0.2}
               maxZoom={1.6}
               nodesConnectable={false}
               deleteKeyCode={null}
@@ -386,7 +417,7 @@ export function ResolutionFlow() {
         </Reveal>
 
         {/* Controls + step log */}
-        <Reveal delay={0.15}>
+        <Reveal delay={0.15} className="resolution-details">
           <div className="mt-4 flex flex-col gap-4 lg:flex-row">
             <div className="flex shrink-0 items-center gap-4 lg:flex-col lg:items-start lg:gap-3">
               <button

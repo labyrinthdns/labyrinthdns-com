@@ -114,8 +114,8 @@ function FeatureCard({ feature, index }: { feature: Feature; index: number }) {
 
 export function Features() {
   return (
-    <section id="features" className="features-section scroll-mt-24 py-24">
-      <div className="mx-auto max-w-7xl px-4 sm:px-6">
+    <section id="features" className="features-section scroll-mt-24 section-space">
+      <div className="site-container">
         <div className="features-intro">
           <Reveal>
             <SectionHeading

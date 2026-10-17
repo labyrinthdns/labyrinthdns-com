@@ -51,9 +51,9 @@ export function Performance() {
   return (
     <section
       id="performance"
-      className="scroll-mt-24 border-t border-border py-24"
+      className="scroll-mt-24 border-t border-border section-space"
     >
-      <div className="mx-auto max-w-7xl px-4 sm:px-6">
+      <div className="site-container">
         <div className="grid gap-12 lg:grid-cols-[1fr_1.25fr] lg:gap-16">
           <div>
             <Reveal>
@@ -75,7 +75,7 @@ export function Performance() {
                       <h3 className="font-mono text-sm font-medium text-fg">
                         {item.title}
                       </h3>
-                      <p className="mt-1.5 text-sm leading-relaxed text-muted">
+                      <p className="reading-copy mt-1.5 text-sm leading-relaxed text-muted">
                         {item.body}
                       </p>
                     </div>

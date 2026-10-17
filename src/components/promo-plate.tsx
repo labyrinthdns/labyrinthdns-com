@@ -21,7 +21,7 @@ const notes = [
 export function PromoPlate({ version = site.version }: { version?: string }) {
   return (
     <section className="outro-section">
-      <div className="mx-auto max-w-7xl px-4 sm:px-6">
+      <div className="site-container">
         <Reveal>
           <div className="outro-invitation">
             <div>

@@ -20,7 +20,7 @@ export default function DocsLayout({
   return (
     <>
       <SiteHeader />
-      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:flex lg:gap-12">
+      <div className="site-container docs-layout">
         <aside
           aria-label="Documentation sidebar"
           className="hidden w-56 shrink-0 lg:block"
@@ -29,11 +29,11 @@ export default function DocsLayout({
             <DocsSidebarNav />
           </div>
         </aside>
-        <div className="min-w-0 flex-1 py-10 lg:py-14">
+        <div className="docs-body min-w-0 py-10 lg:py-14">
           <div className="mb-8 lg:hidden">
             <DocsMobileNav />
           </div>
-          <main id="main-content" tabIndex={-1} className="max-w-prose pb-10">
+          <main id="main-content" tabIndex={-1} className="docs-content pb-10">
             {children}
           </main>
         </div>

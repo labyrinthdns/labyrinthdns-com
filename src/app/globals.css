@@ -1,5 +1,6 @@
 @import "tailwindcss";
 @import "../styles/design-tokens.css";
+@import "../styles/layout.css";
 
 @custom-variant dark (&:where(.dark, .dark *));
 
@@ -207,11 +208,6 @@ body {
 .site-header > div:not(.reading-progress) {
   height: 82px;
 }
-.hero-section {
-  max-width: 1280px;
-  margin: auto;
-  padding: 0 24px;
-}
 .hero-kicker,
 .not-found-meta {
   display: flex;
@@ -240,7 +236,7 @@ body {
   display: grid;
   grid-template-columns: 1.08fr 1fr;
   align-items: center;
-  gap: 64px;
+  gap: var(--layout-gap);
   padding: 58px 0 50px;
 }
 .hero-copy h1,
@@ -260,7 +256,7 @@ body {
 }
 .hero-description,
 .lost-description {
-  max-width: 450px;
+  max-width: var(--measure-copy);
   font-size: 17px;
   line-height: 1.8;
   color: var(--muted);
@@ -530,9 +526,7 @@ footer {
   overflow: hidden;
 }
 .not-found {
-  max-width: 1280px;
-  padding: 0 24px;
-  margin: auto;
+  outline-offset: 6px;
 }
 .not-found-meta {
   font-family: var(--font-mono);
@@ -641,10 +635,6 @@ footer {
   .site-header > div:not(.reading-progress) {
     height: 68px;
   }
-  .hero-section,
-  .not-found {
-    padding: 0 20px;
-  }
   .hero-kicker {
     font-size: 9px;
     padding: 20px 0;
@@ -721,7 +711,7 @@ footer {
   box-shadow: 10px 10px 0 color-mix(in oklab, var(--fg) 6%, transparent);
 }
 .outro-section {
-  padding: 80px 0 0;
+  padding: var(--section-space) 0 0;
   border-top: 1px solid var(--border);
 }
 .outro-invitation {
@@ -844,7 +834,7 @@ footer {
 }
 /* Let the command scroll inside its own cell on narrow screens. */
 .nothingdns-section {
-  padding: 16px 0 80px;
+  padding: 16px 0 var(--section-space);
 }
 .nothingdns-promo {
   --nothing-green: #00e878;
@@ -1192,7 +1182,7 @@ footer {
 }
 .quick-answers-section {
   border-top: 1px solid var(--border);
-  padding: 96px 0;
+  padding: var(--section-space) 0;
 }
 .quick-answers-layout {
   display: grid;
@@ -1300,7 +1290,7 @@ footer {
     padding-left: 26px;
   }
   .hero-install .copy-command {
-    font-size: 11.5px;
+    font-size: 11px;
     align-items: flex-start;
   }
   .hero-install .copy-command code {

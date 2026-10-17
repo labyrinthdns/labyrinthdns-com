@@ -150,8 +150,8 @@ export function RfcMatrix() {
   const reduce = useReducedMotion();
 
   return (
-    <section id="rfcs" className="scroll-mt-24 border-t border-border py-24">
-      <div className="mx-auto max-w-5xl px-4 sm:px-6">
+    <section id="rfcs" className="scroll-mt-24 border-t border-border section-space">
+      <div className="site-container section-split">
         <Reveal>
           <SectionHeading
             align="center"
@@ -165,7 +165,7 @@ export function RfcMatrix() {
           <Tabs.Root
             value={active}
             onValueChange={setActive}
-            className="mt-12"
+            className="section-panel"
           >
             <Tabs.List
               aria-label="RFC capability groups"

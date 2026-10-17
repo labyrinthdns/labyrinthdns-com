@@ -58,7 +58,7 @@ const answers = [
 export function QuickAnswers() {
   return (
     <section id="questions" className="quick-answers-section">
-      <div className="mx-auto max-w-7xl px-4 sm:px-6">
+      <div className="site-container">
         <div className="quick-answers-layout">
           <Reveal>
             <SectionHeading
@@ -85,7 +85,7 @@ export function QuickAnswers() {
                     <Plus size={18} aria-hidden="true" />
                   </summary>
                   <div className="quick-answer-content">
-                    <p>{answer}</p>
+                    <p className="reading-copy">{answer}</p>
                     {href.startsWith("https://") ? (
                       <a
                         href={href}

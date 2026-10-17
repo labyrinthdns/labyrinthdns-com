@@ -14,7 +14,7 @@ const projectLinks = [
 export function SiteFooter({ version = site.version }: { version?: string }) {
   return (
     <footer className="border-t border-border bg-surface/40">
-      <div className="mx-auto max-w-7xl px-4 py-14 sm:px-6">
+      <div className="site-container footer-content">
         <div className="grid gap-10 md:grid-cols-[1.4fr_1fr_1fr]">
           <div>
             <Link href="/" aria-label="Labyrinth DNS — back to top">

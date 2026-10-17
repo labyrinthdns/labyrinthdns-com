@@ -25,6 +25,15 @@ npm run typecheck
 npm run build
 ```
 
+## Responsive layout
+
+Page shells use the shared `.site-container` class, with fluid gutters and a
+1728px maximum width. Geometry and reading measures live in
+`src/styles/design-tokens.css`; shared layouts live in `src/styles/layout.css`.
+Keep paragraph measures separate from the page width, and use `.section-split`
+for sections with introductory copy beside a data panel on larger screens.
+Check layout changes at 375, 768, 1024, 1440, 1920 and 2560px.
+
 ## Production
 
 For a standard Next.js server, run `npm run build` followed by `npm start`.

@@ -141,8 +141,8 @@ export function InstallSection({
   const reduce = useReducedMotion();
 
   return (
-    <section id="install" className="scroll-mt-24 border-t border-border py-24">
-      <div className="mx-auto max-w-4xl px-4 sm:px-6">
+    <section id="install" className="scroll-mt-24 border-t border-border section-space">
+      <div className="site-container section-split">
         <Reveal>
           <SectionHeading
             align="center"
@@ -156,7 +156,7 @@ export function InstallSection({
           <Tabs.Root
             value={active}
             onValueChange={setActive}
-            className="mt-12"
+            className="section-panel"
           >
             <Tabs.List
               aria-label="Installation methods"
