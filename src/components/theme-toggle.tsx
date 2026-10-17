@@ -1,18 +1,15 @@
 "use client";
 
-import { useSyncExternalStore } from "react";
+import { useId, useRef, useSyncExternalStore } from "react";
 import { useTheme } from "next-themes";
-import { DropdownMenu } from "radix-ui";
-import { Check, Laptop, Moon, Sun } from "lucide-react";
+import { Popover } from "radix-ui";
+import { Check, ChevronDown, Monitor, Moon, Sun } from "lucide-react";
 
-// Hydration-safe mounted flag without setState-in-effect:
-// the server snapshot is always false, the client snapshot always true.
 const subscribeNoop = () => () => {};
-
-const options = [
+const choices = [
   { value: "light", label: "Light", icon: Sun },
   { value: "dark", label: "Dark", icon: Moon },
-  { value: "system", label: "System", icon: Laptop },
+  { value: "system", label: "System", icon: Monitor },
 ] as const;
 
 export function ThemeToggle() {
@@ -22,44 +19,91 @@ export function ThemeToggle() {
     () => true,
     () => false,
   );
+  const current =
+    choices.find((choice) => mounted && choice.value === theme) ?? choices[2];
+  const Icon = current.icon;
+  const id = useId();
+  const panel = useRef<HTMLDivElement>(null);
 
   return (
-    <DropdownMenu.Root>
-      <DropdownMenu.Trigger asChild>
+    <Popover.Root>
+      <Popover.Trigger asChild>
         <button
           type="button"
-          aria-label="Change theme"
-          title="Change theme"
-          className="inline-flex size-9 items-center justify-center rounded-md border border-border bg-surface text-muted transition-colors hover:border-primary/40 hover:text-fg"
+          className="appearance-trigger"
+          aria-label={`Color theme: ${current.label}`}
         >
-          {mounted && theme === "light" ? (
-            <Sun className="size-4" />
-          ) : (
-            <Moon className="size-4" />
-          )}
+          <Icon size={16} aria-hidden="true" />
+          <span>{current.label}</span>
+          <ChevronDown
+            size={12}
+            className="appearance-chevron"
+            aria-hidden="true"
+          />
         </button>
-      </DropdownMenu.Trigger>
-      <DropdownMenu.Portal>
-        <DropdownMenu.Content
-          sideOffset={6}
+      </Popover.Trigger>
+      <Popover.Portal>
+        <Popover.Content
+          ref={panel}
+          role="dialog"
+          aria-label="Appearance"
           align="end"
-          className="z-50 min-w-36 rounded-md border border-border bg-surface p-1 shadow-3"
+          sideOffset={10}
+          collisionPadding={16}
+          className="appearance-panel"
+          onOpenAutoFocus={(event) => {
+            event.preventDefault();
+            panel.current
+              ?.querySelector<HTMLInputElement>("input:checked")
+              ?.focus();
+          }}
         >
-          {options.map((option) => (
-            <DropdownMenu.Item
-              key={option.value}
-              onSelect={() => setTheme(option.value)}
-              className="flex cursor-pointer items-center gap-2.5 rounded-sm px-2.5 py-1.5 text-sm text-fg outline-none data-[highlighted]:bg-raised"
-            >
-              <option.icon className="size-4 text-muted" />
-              <span className="flex-1">{option.label}</span>
-              {mounted && theme === option.value ? (
-                <Check className="size-3.5 text-primary" />
-              ) : null}
-            </DropdownMenu.Item>
-          ))}
-        </DropdownMenu.Content>
-      </DropdownMenu.Portal>
-    </DropdownMenu.Root>
+          <div className="appearance-heading">
+            <span>Appearance</span>
+            <span>Your space, your style.</span>
+          </div>
+          <fieldset className="appearance-options">
+            <legend className="sr-only">Color theme</legend>
+            {choices.map(({ value, label, icon: ChoiceIcon }) => (
+              <label className="appearance-option" key={value}>
+                <input
+                  type="radio"
+                  name={`${id}-theme`}
+                  value={value}
+                  checked={current.value === value}
+                  onChange={() => setTheme(value)}
+                />
+                <span
+                  className={`appearance-preview appearance-preview-${value}`}
+                  aria-hidden="true"
+                >
+                  <span className="appearance-window">
+                    <span className="appearance-sidebar" />
+                    <span className="appearance-content">
+                      <i />
+                      <i />
+                      <i />
+                    </span>
+                  </span>
+                  <span className="appearance-choice-icon">
+                    <ChoiceIcon size={14} />
+                  </span>
+                  <span className="appearance-check">
+                    <Check size={12} />
+                  </span>
+                </span>
+                <span className="appearance-label">{label}</span>
+              </label>
+            ))}
+          </fieldset>
+          <p className="appearance-status" aria-live="polite">
+            <Icon size={13} aria-hidden="true" />
+            {current.value === "system"
+              ? "Follows your device’s appearance."
+              : `${current.label} mode, saved for your next visit.`}
+          </p>
+        </Popover.Content>
+      </Popover.Portal>
+    </Popover.Root>
   );
 }

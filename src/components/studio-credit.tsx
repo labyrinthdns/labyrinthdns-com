@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef } from "react";
+import { useRef, useState } from "react";
 import { useInView, useReducedMotion } from "motion/react";
 import { ArrowUpRight } from "lucide-react";
 
@@ -12,13 +12,16 @@ const projects = [
 ];
 
 export function StudioCredit() {
-  const ref = useRef<HTMLElement>(null);
-  const seen = useInView(ref, { once: true, margin: "0px 0px -40px 0px" });
+  const ref = useRef<SVGSVGElement>(null);
+  const seen = useInView(ref, { once: true, amount: 0.4 });
   const reduce = useReducedMotion();
+  const [replay, setReplay] = useState(0);
+  const replayLogo = () => {
+    if (seen && !reduce) setReplay((value) => value + 1);
+  };
 
   return (
     <section
-      ref={ref}
       id="studio"
       aria-labelledby="studio-title"
       className="studio-credit"
@@ -30,8 +33,14 @@ export function StudioCredit() {
           rel="noopener noreferrer"
           aria-label="Visit OXOGNET"
           className="studio-logo-link"
+          onPointerEnter={(event) => {
+            if (event.pointerType !== "touch") replayLogo();
+          }}
+          onFocus={replayLogo}
         >
           <svg
+            key={replay}
+            ref={ref}
             viewBox="0 0 200 130"
             fill="none"
             aria-hidden="true"
