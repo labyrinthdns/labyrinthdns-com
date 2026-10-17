@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { navLinks, site } from "@/lib/site";
 import { Brand } from "@/components/brand";
+import { StudioCredit } from "@/components/studio-credit";
 
 const projectLinks = [
   { href: site.github, label: "GitHub" },
@@ -10,11 +11,7 @@ const projectLinks = [
   { href: site.conduct, label: "Code of conduct" },
 ];
 
-export function SiteFooter({
-  version = site.version,
-}: {
-  version?: string;
-}) {
+export function SiteFooter({ version = site.version }: { version?: string }) {
   return (
     <footer className="border-t border-border bg-surface/40">
       <div className="mx-auto max-w-7xl px-4 py-14 sm:px-6">
@@ -70,11 +67,15 @@ export function SiteFooter({
           </nav>
         </div>
 
-        <div className="mt-12 flex flex-col items-start justify-between gap-3 border-t border-border pt-6 font-mono text-xs text-muted sm:flex-row sm:items-center">
-          <span>© {new Date().getFullYear()} Labyrinth DNS</span>
+        <StudioCredit />
+
+        <div className="mt-8 flex flex-col items-start justify-between gap-3 font-mono text-xs text-muted sm:flex-row sm:items-center">
+          <span>
+            © {new Date().getFullYear()} OXOGNET OÜ · Labyrinth DNS · MIT
+          </span>
           <span className="tabular-nums">{version}</span>
           <span className="tracking-wider">
-            Serial: your-resolver-01 · Follow the thread.
+            Made in Estonia, shipped worldwide.
           </span>
         </div>
       </div>

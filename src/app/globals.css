@@ -529,19 +529,6 @@ footer {
   position: relative;
   overflow: hidden;
 }
-footer::after {
-  content: "labyrinth";
-  display: block;
-  max-width: 1280px;
-  margin: 0 auto;
-  padding: 0 24px;
-  font-size: clamp(70px, 16vw, 220px);
-  line-height: 1;
-  letter-spacing: -0.075em;
-  font-weight: 500;
-  color: var(--border);
-  pointer-events: none;
-}
 .not-found {
   max-width: 1280px;
   padding: 0 24px;
@@ -1327,5 +1314,247 @@ footer::after {
   .hero-install p {
     font-size: 10px;
     line-height: 1.7;
+  }
+}
+
+/* The studio signature keeps OXOGNET's identity in both site themes. */
+.studio-credit {
+  --studio-pink: #d00669;
+  --studio-purple: #692d91;
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  margin-top: 64px;
+  border: 1px solid var(--border);
+  border-radius: 24px;
+  background: var(--surface);
+  scroll-margin-top: 108px;
+}
+.dark .studio-credit {
+  --studio-pink: #ff4a9e;
+  --studio-purple: #bb80e6;
+}
+.studio-credit::before,
+.studio-credit::after {
+  content: "";
+  position: absolute;
+  z-index: -1;
+  pointer-events: none;
+  border-radius: 50%;
+  width: 380px;
+  height: 380px;
+  opacity: 0.09;
+}
+.studio-credit::before {
+  right: -160px;
+  top: -210px;
+  background: radial-gradient(circle, #ed0878, transparent 68%);
+}
+.studio-credit::after {
+  left: 90px;
+  bottom: -280px;
+  background: radial-gradient(circle, #692d91, transparent 68%);
+}
+.dark .studio-credit::before,
+.dark .studio-credit::after {
+  opacity: 0.18;
+}
+.studio-credit-inner {
+  display: grid;
+  grid-template-columns: 150px minmax(0, 1fr) 230px;
+  gap: 40px;
+  padding: 40px;
+  align-items: center;
+}
+.studio-logo-link {
+  display: block;
+  border-radius: 8px;
+}
+.studio-mark {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+.studio-mark path {
+  stroke: #ed0878;
+}
+.studio-mark path.studio-mark-purple {
+  stroke: var(--studio-purple);
+}
+.studio-mark-draw path {
+  stroke-dasharray: 1;
+  stroke-dashoffset: 1;
+  animation: studio-signature 1.5s cubic-bezier(0.6, 0.1, 0.2, 1) both;
+}
+.studio-mark-draw path:nth-child(2) {
+  animation-delay: 0.2s;
+}
+.studio-mark-draw path:nth-child(3) {
+  animation-delay: 0.4s;
+}
+.studio-mark-draw path:nth-child(4) {
+  animation-delay: 0.7s;
+}
+@keyframes studio-signature {
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+.studio-kicker {
+  font-family: var(--font-mono);
+  font-size: 8px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+.studio-byline {
+  margin-top: 20px;
+  font-size: 12px;
+  color: var(--muted);
+  line-height: 1.6;
+}
+.studio-description h2 {
+  margin-top: 4px;
+  font-size: 42px;
+  line-height: 1.15;
+  font-weight: 750;
+  letter-spacing: -0.065em;
+}
+.studio-description h2 a {
+  display: inline-flex;
+  align-items: baseline;
+}
+.studio-wordmark-net {
+  font-weight: 400;
+  color: var(--muted);
+}
+.studio-wordmark-dot {
+  color: var(--studio-pink);
+}
+.studio-description h2 svg {
+  margin-left: 13px;
+  color: var(--muted);
+  transition:
+    transform 0.2s,
+    color 0.2s;
+}
+.studio-description h2 a:hover svg {
+  transform: translate(2px, -2px);
+  color: var(--studio-pink);
+}
+.studio-about {
+  max-width: 470px;
+  margin-top: 16px;
+  font-size: 13px;
+  line-height: 1.85;
+  color: var(--muted);
+}
+.studio-visit {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: 18px;
+  padding-bottom: 5px;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--studio-pink);
+  border-bottom: 1px solid
+    color-mix(in oklab, var(--studio-pink) 30%, transparent);
+}
+.studio-visit:hover {
+  border-color: var(--studio-pink);
+}
+.studio-projects {
+  display: grid;
+  gap: 8px;
+}
+.studio-projects > p {
+  margin-bottom: 3px;
+}
+.studio-projects > a {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 11px 14px;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  background: var(--bg);
+  transition:
+    border-color 0.2s,
+    transform 0.2s;
+}
+.studio-projects > a:hover {
+  border-color: var(--studio-pink);
+  transform: translateX(3px);
+}
+.studio-projects > a > span {
+  display: grid;
+  gap: 4px;
+}
+.studio-projects strong {
+  font-size: 12px;
+  font-weight: 600;
+}
+.studio-projects a span span {
+  font-size: 10px;
+  color: var(--muted);
+  line-height: 1.5;
+}
+.studio-projects svg {
+  color: var(--muted);
+  flex-shrink: 0;
+}
+.studio-credit a:focus-visible {
+  outline-color: var(--studio-pink);
+}
+@media (max-width: 1023px) {
+  .studio-credit-inner {
+    grid-template-columns: 110px minmax(0, 1fr);
+    gap: 28px;
+    padding: 32px;
+  }
+  .studio-projects {
+    grid-column: 1 / -1;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .studio-projects > p {
+    grid-column: 1 / -1;
+  }
+}
+@media (max-width: 639px) {
+  .studio-credit {
+    border-radius: 18px;
+    margin-top: 40px;
+  }
+  .studio-credit-inner {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 24px;
+    padding: 24px;
+  }
+  .studio-logo-link {
+    width: 110px;
+  }
+  .studio-description h2 {
+    font-size: 40px;
+  }
+  .studio-byline {
+    margin-top: 16px;
+  }
+  .studio-projects {
+    gap: 8px;
+  }
+  .studio-projects > a {
+    padding: 11px;
+    gap: 4px;
+  }
+  .studio-projects > a:hover {
+    transform: none;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .studio-mark-draw path {
+    animation: none;
+    stroke-dashoffset: 0;
   }
 }
