@@ -1,14 +1,17 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
-import { Pause, Play } from "lucide-react";
+import { useEffect, useRef } from "react";
+import { useAnimations } from "@/components/animation-toggle";
 import { usePathname } from "next/navigation";
 import {
   createQueryRoutes,
+  createWaveRelays,
+  pointerFlow,
   pointOnRoute,
   siteScene as config,
   type Point,
   type QueryRoute,
+  type WaveRelay,
 } from "@/lib/site-scene";
 
 const ns = "http://www.w3.org/2000/svg";
@@ -21,9 +24,12 @@ type RouteElements = {
   connection: SVGPathElement;
   highlight: SVGGElement;
   response: SVGPathElement;
+  echo: SVGCircleElement;
+  offset: Point;
+  velocity: Point;
   center: Point;
 };
-type Signal = Point & { born: number; variant: number };
+type Signal = Point & { born: number; variant: number; relays: Map<number, WaveRelay> };
 type SignalElements = {
   group: SVGGElement;
   wave: SVGPathElement;
@@ -36,7 +42,7 @@ export function SiteBackground() {
   const refreshRef = useRef<(() => void) | null>(null);
   const playback = useRef(true);
   const interactionRef = useRef<SVGSVGElement>(null);
-  const [running, setRunning] = useState(true);
+  const running = useAnimations();
 
   useEffect(() => {
     playback.current = running;
@@ -81,15 +87,15 @@ export function SiteBackground() {
     };
     const blocked = (event: PointerEvent) =>
       event.target instanceof Element && !!event.target.closest(controls);
-    const render = () => {
-      const calm = motion.matches || !playback.current;
+    const render = (dt = 0) => {
+      const calm = motion.matches;
       revealed = calm ? 1 : Math.max(revealed, Math.min(1, clock / 1.4));
       const entrance = revealed;
       const activity = Math.max(
         config.idleIntensity,
         1 - Math.max(0, clock - lastInput - config.idleAfter) * 0.15,
       );
-      for (const item of routes) {
+      for (const [index, item] of routes.entries()) {
         const {
           route,
           center,
@@ -98,6 +104,9 @@ export function SiteBackground() {
           connection,
           highlight,
           response,
+          echo,
+          offset,
+          velocity,
         } = item;
         const parallax = calm
           ? 0
@@ -112,14 +121,12 @@ export function SiteBackground() {
           : Math.cos(clock * 0.13 + route.phase * 8) * 5 * route.depth;
         const dx = center.x - pointer.x,
           dy = center.y + parallax - pointer.y;
-        const distance = Math.hypot(dx, dy);
-        let force =
-          Math.max(0, 1 - distance / config.pointerRadius) ** 2 *
-          pointer.strength *
-          config.pointerForce;
+        const flow = pointerFlow(dx, dy, clock, route.phase);
         let shockX = 0,
           shockY = 0,
-          energy = 0;
+          energy = 0,
+          echoAge = 0,
+          echoStrength = 0;
         for (const signal of signals) {
           const age = (clock - signal.born) / config.pulseLife;
           const sx = center.x - signal.x,
@@ -133,10 +140,40 @@ export function SiteBackground() {
           shockX += (sx / (sd || 1)) * ring * 42;
           shockY += (sy / (sd || 1)) * ring * 42;
           energy = Math.min(1, energy + ring * 2);
+          const relay = signal.relays.get(index);
+          if (relay) {
+            const elapsed = clock - signal.born - relay.delay;
+            if (elapsed >= 0 && elapsed < config.relayLife) {
+              const progress = elapsed / config.relayLife;
+              const response = Math.sin(progress * Math.PI) * (1 - progress) * relay.strength;
+              const rx = center.x - relay.from.x,
+                ry = center.y + parallax - relay.from.y;
+              const length = Math.hypot(rx, ry) || 1;
+              shockX += (rx - ry * 0.65) / length * response * 30;
+              shockY += (ry + rx * 0.65) / length * response * 30;
+              energy = Math.min(1, energy + response);
+              if (response > echoStrength) {
+                echoStrength = response;
+                echoAge = progress;
+              }
+            }
+          }
         }
-        force *= 0.8 + Math.sin(clock * 2 + route.phase * 6) * 0.2;
-        const x = driftX + (dx / (distance || 1)) * force + shockX,
-          y = parallax + driftY + (dy / (distance || 1)) * force + shockY;
+        // Integrate in small steps so low frame rates cannot destabilize springs.
+        const steps = Math.max(1, Math.ceil(dt / (1 / 120)));
+        const step = dt / steps;
+        for (let n = 0; n < steps; n++) {
+          for (const axis of ["x", "y"] as const) {
+            const target = calm ? 0 : flow[axis] * pointer.strength + (axis === "x" ? shockX : shockY);
+            velocity[axis] += ((target - offset[axis]) * 90 - velocity[axis] * 18) * step;
+            offset[axis] += velocity[axis] * step;
+          }
+        }
+        if (calm) {
+          offset.x = offset.y = velocity.x = velocity.y = 0;
+        }
+        const x = driftX + offset.x,
+          y = parallax + driftY + offset.y;
         const transform = `translate(${x.toFixed(2)} ${y.toFixed(2)})`;
         group.setAttribute("transform", transform);
         group.setAttribute(
@@ -165,7 +202,7 @@ export function SiteBackground() {
         if (proximity > 0 && pointer.strength > 0.01)
           connection.setAttribute(
             "d",
-            `M${p.x} ${p.y}H${pointer.x - x}V${pointer.y - y}`,
+            `M${p.x} ${p.y}Q${p.x + (pointer.x - x - p.x) * 0.25 - (pointer.y - y - p.y) * 0.2} ${p.y + (pointer.y - y - p.y) * 0.65} ${pointer.x - x} ${pointer.y - y}`,
           );
         highlight.setAttribute("transform", transform);
         highlight.setAttribute(
@@ -189,6 +226,8 @@ export function SiteBackground() {
             })
             .join("L")}`,
         );
+        echo.setAttribute("r", String(5 + echoAge * 40));
+        echo.setAttribute("opacity", String(echoStrength * 0.65));
       }
       cursor.setAttribute("transform", `translate(${pointer.x} ${pointer.y})`);
       cursor.setAttribute("opacity", String(pointer.strength * 0.24));
@@ -242,8 +281,7 @@ export function SiteBackground() {
       !disposed &&
       visible &&
       !document.hidden &&
-      !motion.matches &&
-      playback.current;
+      !motion.matches;
     const tick = (now: number) => {
       frame = 0;
       if (!allowed()) {
@@ -263,7 +301,7 @@ export function SiteBackground() {
           (pointer.target - pointer.strength) * (1 - Math.exp(-dt * 6));
         signals = signals.filter((p) => clock - p.born < config.pulseLife);
         trails = trails.filter((p) => clock - p.born < config.trailLife);
-        render();
+        render(dt);
       }
       frame = requestAnimationFrame(tick);
     };
@@ -272,11 +310,11 @@ export function SiteBackground() {
       frame = 0;
       previous = 0;
       if (disposed || !visible || document.hidden) return;
-      if (motion.matches || !playback.current) {
+      if (motion.matches) {
         signals = [];
         trails = [];
         pointer.strength = 0;
-        render();
+        if (cursor) render();
       } else frame = requestAnimationFrame(tick);
     };
     const measure = () => {
@@ -315,7 +353,8 @@ export function SiteBackground() {
         fragment.append(group);
         const highlight = make("g");
         const response = make("path", { class: "scene-response" });
-        highlight.append(response, connection);
+        const echo = make("circle", { class: "scene-echo", cx: center.x, cy: center.y, r: 5, opacity: 0 });
+        highlight.append(response, connection, echo);
         foreground.append(highlight);
         return {
           route,
@@ -325,6 +364,9 @@ export function SiteBackground() {
           connection,
           highlight,
           response,
+          echo,
+          offset: { x: 0, y: 0 },
+          velocity: { x: 0, y: 0 },
         };
       });
       pool = Array.from({ length: config.maxPulses }, () => {
@@ -354,7 +396,7 @@ export function SiteBackground() {
       refresh();
     };
     const move = (event: PointerEvent) => {
-      if (!allowed() || event.pointerType === "touch") {
+      if (!playback.current || !allowed() || event.pointerType === "touch") {
         pointer.target = 0;
         return;
       }
@@ -390,7 +432,8 @@ export function SiteBackground() {
         start.id !== event.pointerId ||
         start.blocked ||
         blocked(event) ||
-        !allowed()
+        !allowed() ||
+        !playback.current
       )
         return;
       if (
@@ -406,6 +449,15 @@ export function SiteBackground() {
         x: event.clientX,
         y: event.clientY,
         born: clock,
+        relays: new Map(createWaveRelays(
+          { x: event.clientX, y: event.clientY },
+          routes.map(({ center, group }) => {
+            // Click-time geometry includes the same drift/parallax as the SVG.
+            const transform = group.getAttribute("transform")?.match(/translate\(([-\d.]+) ([-\d.]+)\)/);
+            return { x: center.x + Number(transform?.[1] ?? 0), y: center.y + Number(transform?.[2] ?? 0) };
+          }),
+          mobile ? config.maxRelays.mobile : config.maxRelays.desktop,
+        ).map((relay) => [relay.index, relay])),
         variant:
           Math.floor(
             event.clientX / 120 + event.clientY / 120 + signals.length,
@@ -421,7 +473,7 @@ export function SiteBackground() {
     const scroll = () => {
       scrollOffset = window.scrollY;
       down = null;
-      if (motion.matches || !playback.current) refresh();
+      if (motion.matches) refresh();
     };
     const visibility = () => {
       leave();
@@ -435,45 +487,56 @@ export function SiteBackground() {
       refresh();
     });
     intersection.observe(svg);
-    document.addEventListener("pointermove", move, {
-      passive: true,
-      capture: true,
-    });
-    document.addEventListener("pointerdown", press, {
-      passive: true,
-      capture: true,
-    });
-    document.addEventListener("pointerup", release, {
-      passive: true,
-      capture: true,
-    });
-    document.addEventListener("pointercancel", leave);
-    document.documentElement.addEventListener("pointerleave", leave);
+    const detachInput = () => {
+      document.removeEventListener("pointermove", move, true);
+      document.removeEventListener("pointerdown", press, true);
+      document.removeEventListener("pointerup", release, true);
+      document.removeEventListener("pointercancel", leave);
+      document.documentElement.removeEventListener("pointerleave", leave);
+    };
+    const syncInput = () => {
+      detachInput();
+      if (playback.current && !motion.matches) {
+        document.addEventListener("pointermove", move, { passive: true, capture: true });
+        document.addEventListener("pointerdown", press, { passive: true, capture: true });
+        document.addEventListener("pointerup", release, { passive: true, capture: true });
+        document.addEventListener("pointercancel", leave);
+        document.documentElement.addEventListener("pointerleave", leave);
+      } else {
+        signals = [];
+        trails = [];
+        down = null;
+        pointer.strength = pointer.target = 0;
+        for (const item of routes) {
+          item.offset.x = item.offset.y = item.velocity.x = item.velocity.y = 0;
+        }
+        if (cursor) render();
+      }
+    };
+    const motionChange = () => { syncInput(); refresh(); };
     document.addEventListener("visibilitychange", visibility);
     window.addEventListener("blur", leave);
     window.addEventListener("scroll", scroll, { passive: true });
-    motion.addEventListener("change", refresh);
+    motion.addEventListener("change", motionChange);
     // Keep viewport coordinates and scroll parallax current across navigation.
     refreshRef.current = () => {
       scrollOffset = window.scrollY;
+      syncInput();
       refresh();
     };
     measure();
+    syncInput();
     return () => {
       disposed = true;
       cancelAnimationFrame(frame);
       refreshRef.current = null;
       observer.disconnect();
       intersection.disconnect();
-      document.removeEventListener("pointermove", move, true);
-      document.removeEventListener("pointerdown", press, true);
-      document.removeEventListener("pointerup", release, true);
-      document.removeEventListener("pointercancel", leave);
-      document.documentElement.removeEventListener("pointerleave", leave);
+      detachInput();
       document.removeEventListener("visibilitychange", visibility);
       window.removeEventListener("blur", leave);
       window.removeEventListener("scroll", scroll);
-      motion.removeEventListener("change", refresh);
+      motion.removeEventListener("change", motionChange);
       svg.replaceChildren();
       overlay.replaceChildren();
     };
@@ -493,22 +556,6 @@ export function SiteBackground() {
         aria-hidden="true"
         focusable="false"
       />
-      <button
-        type="button"
-        className="background-toggle"
-        aria-label={
-          running ? "Pause background animation" : "Play background animation"
-        }
-        aria-pressed={!running}
-        onClick={() => setRunning((value) => !value)}
-      >
-        {running ? (
-          <Pause size={13} aria-hidden="true" />
-        ) : (
-          <Play size={13} aria-hidden="true" />
-        )}
-        <span>Background</span>
-      </button>
     </>
   );
 }

@@ -9,6 +9,7 @@ import * as scene from "../src/lib/site-scene.ts";
 // observe SVG output, scheduled frames and listener cleanup, not private state.
 function mount({
   reduced = false,
+  enabled = true,
   width = 1440,
   height = 900,
   quiet = [],
@@ -21,6 +22,8 @@ function mount({
   let now = 0,
     sequence = 0,
     writes = 0;
+  let running = enabled;
+  let refIndex = 0;
   const target = (extra = {}) => {
     const listeners = new Map();
     return {
@@ -57,6 +60,9 @@ function mount({
     setAttribute(name, value) {
       this.attrs[name] = String(value);
       writes++;
+    }
+    getAttribute(name) {
+      return this.attrs[name] ?? null;
     }
     append(...nodes) {
       this.children.push(...nodes);
@@ -111,8 +117,9 @@ function mount({
         return {
           useEffect: (fn) => effects.push(fn),
           useRef: (initial) => {
-            const ref = { current: initial };
-            refs.push(ref);
+            const index = refIndex++;
+            const ref = refs[index] ?? { current: initial };
+            refs[index] = ref;
             return ref;
           },
           useState: (value) => [value, () => {}],
@@ -123,6 +130,7 @@ function mount({
         return { Pause: () => null, Play: () => null };
       if (name === "next/navigation") return { usePathname: () => "/" };
       if (name === "@/lib/site-scene") return scene;
+      if (name === "@/components/animation-toggle") return { useAnimations: () => running };
       throw new Error(`Unexpected import: ${name}`);
     },
     document,
@@ -151,7 +159,7 @@ function mount({
   const visible = (value) =>
     observers
       .find((o) => o.kind === "intersection")
-      .callback([{ isIntersecting: value }]);
+      ?.callback([{ isIntersecting: value }]);
   const advance = (milliseconds) => {
     for (let elapsed = 0; elapsed < milliseconds; elapsed += 20) {
       now += 20;
@@ -204,9 +212,13 @@ function mount({
     get writes() {
       return writes;
     },
-    pause() {
-      refs[2].current = false;
+    setRunning(value) {
+      running = value;
+      refs[2].current = value;
       refs[1].current();
+    },
+    pause() {
+      this.setRunning(false);
     },
     unmount() {
       cleanups.forEach((fn) => fn());
@@ -214,7 +226,7 @@ function mount({
   };
 }
 
-test("SVG animation stops offscreen, in a hidden tab and on pause; all resources clean up", () => {
+test("ambient animation stops offscreen and in hidden tabs; mouse toggle preserves it and cleanup stops all resources", () => {
   const env = mount();
   assert.ok(env.writes > 0);
   env.visible(false);
@@ -237,8 +249,8 @@ test("SVG animation stops offscreen, in a hidden tab and on pause; all resources
   env.pause();
   writes = env.writes;
   env.advance(10000);
-  assert.equal(env.writes, writes);
-  assert.equal(env.frames.size, 0);
+  assert.ok(env.writes > writes);
+  assert.equal(env.frames.size, 1);
   env.unmount();
   for (const target of [env.root, env.document, env.window, env.media])
     assert.equal(target.listeners.size, 0);
@@ -300,26 +312,48 @@ test("text region boundaries never abruptly suppress a whole route", () => {
   inside.unmount();
 });
 
-test("reduced motion is static during taps and scrolls, and updates when the preference changes", () => {
-  const env = mount({ reduced: true });
-  const firstTransform = env.svg.children[0].attrs.transform;
-  const writes = env.writes;
+test("disabled mouse effects preserve moving ambient packets, remove pointer listeners, and can restart", () => {
+  const env = mount({ enabled: false });
+  const packet = env.svg.children[0].children.find((el) => el.attrs.class === "scene-packet");
+  const initial = packet.attrs.cy + packet.attrs.cx;
   env.pointer("pointerdown");
   env.pointer("pointerup");
   env.advance(2000);
-  assert.equal(env.writes, writes);
+  assert.notEqual(packet.attrs.cy + packet.attrs.cx, initial);
   assert.equal(env.signalCount(), 0);
-  env.window.scrollY = 4000;
-  env.window.fire("scroll");
-  assert.equal(env.svg.children[0].attrs.transform, firstTransform);
+  assert.equal(env.document.listeners.has("pointermove"), false);
+  env.setRunning(true);
+  env.pointer("pointerdown");
+  env.pointer("pointerup");
+  env.advance(100);
+  assert.equal(env.signalCount(), 1);
+  env.setRunning(false);
+  assert.equal(env.signalCount(), 0);
+  assert.equal(env.frames.size, 1);
+  assert.ok(env.svg.children.length > 0);
+  assert.equal(env.document.listeners.has("pointerdown"), false);
+  assert.equal(env.document.listeners.has("pointerup"), false);
+  assert.equal(env.document.listeners.has("pointermove"), false);
+  env.setRunning(true);
+  env.advance(100);
+  assert.ok(env.svg.children.length > 0);
+  env.pointer("pointerdown");
+  env.pointer("pointerup");
+  env.advance(100);
+  assert.equal(env.signalCount(), 1);
+  env.unmount();
+});
+
+test("reduced motion keeps ambient static even when mouse effects are enabled", () => {
+  const env = mount({ reduced: true });
+  const transform = env.svg.children[0].attrs.transform;
+  env.advance(2000);
   assert.equal(env.frames.size, 0);
+  assert.equal(env.svg.children[0].attrs.transform, transform);
   env.media.matches = false;
   env.media.fire("change");
   env.advance(100);
   assert.equal(env.frames.size, 1);
-  env.media.matches = true;
-  env.media.fire("change");
-  assert.equal(env.frames.size, 0);
   env.unmount();
 });
 
@@ -424,4 +458,23 @@ test("click shock displaces nearby objects while distant routes keep their calm 
   );
   control.unmount();
   active.unmount();
+});
+
+test("nearby shapes emit short-lived secondary ripples and springs settle after leaving", () => {
+  const env = mount();
+  const routes = scene.createQueryRoutes(1440, 900);
+  const center = scene.pointOnRoute(routes[5], routes[5].length * 0.5);
+  const echoes = () => env.overlay.children.flatMap((el) => el.children)
+    .filter((el) => el.attrs.class === "scene-echo");
+  env.pointer("pointerdown", center.x + 50, center.y);
+  env.pointer("pointerup", center.x + 50, center.y);
+  env.advance(300);
+  assert.ok(echoes().some((el) => Number(el.attrs.opacity) > 0.01));
+  env.pointer("pointermove", center.x + 80, center.y);
+  env.advance(500);
+  env.root.fire("pointerleave");
+  env.advance(3000);
+  assert.ok(echoes().every((el) => Number(el.attrs.opacity) === 0));
+  assert.ok(env.connections().every((el) => Number(el.attrs.opacity) < 0.001));
+  env.unmount();
 });

@@ -41,13 +41,19 @@ the content, and an unmasked interaction layer above cards and text (below
 navigation/dialogs). Neither is nested in section overflow or uses content-box
 opacity gates. Hover is tracked over controls too; only emitted taps are filtered.
 All input uses client coordinates, so scrolling keeps the pointer field anchored.
+Nearby shapes follow a damped orbital field. Clicks send short secondary ripples
+through up to eight neighboring shapes (four on mobile), with delayed, weaker
+hops. The neighbor graph is built only on clicks; SVG nodes stay pooled.
 This keeps the same scene across section boundaries without allocating a
 page-height drawing surface. Route,
 speed, lifetime and density settings live in `src/lib/site-scene.ts`; theme colors
 live in `src/styles/site-scene.css`. Passive document pointer events distinguish
-taps from controls, selection and scroll gestures. The corner background button
-pauses the scene independently of the hero illustration. Reduced motion renders
-a static scene; hidden scenes stop their animation loop. `npm test` covers the
+taps from controls, selection and scroll gestures. The mouse button beside the
+header theme control remembers its preference in `localStorage`; without a saved
+choice it follows reduced motion. Disabling mouse effects clears interactions
+and removes pointer listeners; ambient routes, moving packets, and other site
+animations continue. The scene respects reduced motion and stops its loop when
+hidden. `npm test` covers the
 route math, signal limits/expiry and animation lifecycle with Node's test runner.
 
 ## Production

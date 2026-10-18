@@ -11,6 +11,7 @@ import { cn } from "@/lib/utils";
 import { Brand } from "@/components/brand";
 import { GitHubMark } from "@/components/github-mark";
 import { ThemeToggle } from "@/components/theme-toggle";
+import { AnimationToggle } from "@/components/animation-toggle";
 
 export function SiteHeader({ stars = site.stars }: { stars?: number }) {
   const [scrolled, setScrolled] = useState(false);
@@ -106,6 +107,7 @@ export function SiteHeader({ stars = site.stars }: { stars?: number }) {
             </span>
           </a>
           <ThemeToggle />
+          <AnimationToggle />
           <Link
             href="/#install"
             className="hidden rounded-md bg-primary px-4 py-2 text-sm font-medium text-bg transition-opacity hover:opacity-90 sm:inline-flex"

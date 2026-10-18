@@ -1,6 +1,32 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { createQueryRoutes, pointOnRoute } from "../src/lib/site-scene.ts";
+import { createQueryRoutes, pointOnRoute, createWaveRelays, pointerFlow } from "../src/lib/site-scene.ts";
+
+test("pointer flow circles smoothly, stays local and has no singularity at its core", () => {
+  assert.deepEqual(pointerFlow(0, 0, 0, 0), { x: 0, y: 0 });
+  assert.deepEqual(pointerFlow(260, 0, 0, 0), { x: 0, y: 0 });
+  const initial = pointerFlow(80, 0, 0, 0);
+  const opposite = pointerFlow(80, 0, Math.PI / 0.9, 0);
+  assert.ok(initial.y > 0 && opposite.y < 0, "objects must arc around, not just repel");
+  for (const time of [0, 1, 10, 1000]) {
+    for (const distance of [0.00001, 1, 32, 100, 259, 500]) {
+      const p = pointerFlow(distance, 0, time, 0.4);
+      assert.ok(Number.isFinite(p.x) && Number.isFinite(p.y));
+      assert.ok(Math.hypot(p.x, p.y) < 70);
+    }
+  }
+});
+
+test("waves relay through neighbors with delayed, weakening, bounded propagation", () => {
+  const centers = [80, 240, 390, 1000].map((x) => ({ x, y: 0 }));
+  const relays = createWaveRelays({ x: 0, y: 0 }, centers, 8);
+  assert.deepEqual(relays.map((relay) => relay.index), [0, 1, 2]);
+  assert.ok(relays[1].delay > relays[0].delay);
+  assert.ok(relays[2].delay > relays[1].delay);
+  assert.ok(relays[2].strength < relays[1].strength);
+  assert.equal(createWaveRelays({ x: 0, y: 0 }, centers, 1).length, 1);
+  assert.deepEqual(createWaveRelays({ x: -1000, y: 0 }, centers, 8), []);
+});
 
 test("packet movement follows corners at a constant distance per second", () => {
   const route = {

@@ -69,53 +69,49 @@ body {
   stroke-width: 1.1;
 }
 .scene-wave,
+.scene-echo,
 .scene-spark {
   fill: none;
   stroke: var(--scene-query);
   stroke-width: 1.2;
   stroke-linecap: round;
 }
-.background-toggle {
-  position: fixed;
-  right: 20px;
-  bottom: 20px;
-  z-index: 40;
+.animation-toggle {
   display: inline-flex;
   align-items: center;
-  gap: 7px;
-  min-width: 36px;
+  flex-shrink: 0;
+  width: 36px;
   height: 36px;
   justify-content: center;
-  padding: 0 10px;
   border: 1px solid var(--border);
   border-radius: 6px;
   background: var(--surface);
   color: var(--muted);
-  font: 10px var(--font-mono);
   cursor: pointer;
 }
-.background-toggle:hover {
+.animation-toggle[aria-pressed="true"] {
+  color: var(--primary);
+  border-color: color-mix(in srgb, var(--primary) 40%, var(--border));
+}
+.animation-toggle[aria-pressed="false"] svg {
+  opacity: 0.5;
+}
+.animation-toggle:hover {
   color: var(--primary);
   border-color: var(--primary);
 }
-@media (max-width: 767px) {
-  .background-toggle {
-    right: 14px;
-    bottom: 14px;
-    padding: 0;
-  }
-  .background-toggle span {
-    display: none;
-  }
+.animation-tooltip {
+  z-index: 90;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 7px 10px;
+  background: var(--surface);
+  color: var(--fg);
+  font-size: 12px;
 }
-@media (prefers-reduced-motion: reduce) {
-  .site-background {
-    opacity: 0.55;
-  }
-  .site-interactions {
-    display: none;
-  }
-  .background-toggle {
-    display: none;
+@media (pointer: coarse), (max-width: 767px) {
+  .animation-toggle {
+    width: 44px;
+    height: 44px;
   }
 }
