@@ -2,30 +2,33 @@ body {
   position: relative;
   isolation: isolate;
 }
-.site-background {
+.site-background,
+.site-interactions {
   --scene-route: #3b197d;
   --scene-query: #ad6808;
-  --scene-line-opacity: 0.2;
+  --scene-line-opacity: 0.12;
   --scene-query-opacity: 0.6;
   position: fixed;
   inset: 0;
-  z-index: -1;
   width: 100%;
   height: 100%;
+  /* Clip only at the browser viewport, never at a content/section rectangle. */
   overflow: hidden;
   pointer-events: none;
-  mask-image: linear-gradient(
-    to bottom,
-    transparent,
-    #000 9%,
-    #000 92%,
-    transparent
-  );
 }
-.dark .site-background {
+.site-background {
+  z-index: -1;
+}
+/* A body-level sibling of the content: cards and section overflow cannot clip it.
+   Header/dialogs keep their higher layers. No content-shaped or viewport mask. */
+.site-interactions {
+  z-index: 30;
+}
+.dark .site-background,
+.dark .site-interactions {
   --scene-route: #c6a6ff;
   --scene-query: #f3b54e;
-  --scene-line-opacity: 0.23;
+  --scene-line-opacity: 0.15;
   --scene-query-opacity: 0.68;
 }
 .scene-route,
@@ -46,7 +49,24 @@ body {
 }
 .scene-connection {
   stroke: var(--scene-query);
-  stroke-opacity: 0.4;
+  stroke-opacity: 0.65;
+}
+.scene-response {
+  fill: none;
+  stroke: var(--scene-query);
+  stroke-width: 1.7;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.scene-trail {
+  fill: none;
+  stroke: var(--scene-query);
+  stroke-width: 1.2;
+}
+.scene-cursor {
+  fill: none;
+  stroke: var(--scene-route);
+  stroke-width: 1.1;
 }
 .scene-wave,
 .scene-spark {
@@ -91,6 +111,9 @@ body {
 @media (prefers-reduced-motion: reduce) {
   .site-background {
     opacity: 0.55;
+  }
+  .site-interactions {
+    display: none;
   }
   .background-toggle {
     display: none;

@@ -7,7 +7,12 @@ import * as scene from "../src/lib/site-scene.ts";
 
 // Run the actual effect against a deterministic SVG/event boundary. Assertions
 // observe SVG output, scheduled frames and listener cleanup, not private state.
-function mount({ reduced = false, width = 1440, height = 900 } = {}) {
+function mount({
+  reduced = false,
+  width = 1440,
+  height = 900,
+  quiet = [],
+} = {}) {
   const effects = [],
     refs = [],
     cleanups = [],
@@ -66,7 +71,8 @@ function mount({ reduced = false, width = 1440, height = 900 } = {}) {
   const document = target({
     hidden: false,
     documentElement: root,
-    querySelectorAll: () => [],
+    querySelectorAll: () =>
+      quiet.map((rect) => ({ getBoundingClientRect: () => rect })),
     createElementNS: (_ns, tag) => new SvgNode(tag),
     createDocumentFragment: () => new SvgNode("fragment"),
   });
@@ -136,6 +142,8 @@ function mount({ reduced = false, width = 1440, height = 900 } = {}) {
   exports.SiteBackground();
   const svg = new SvgNode("svg");
   refs[0].current = svg;
+  const overlay = refs[3] ? new SvgNode("svg") : null;
+  if (overlay) refs[3].current = overlay;
   effects.forEach((effect) => {
     const cleanup = effect();
     if (cleanup) cleanups.push(cleanup);
@@ -169,11 +177,19 @@ function mount({ reduced = false, width = 1440, height = 900 } = {}) {
       pointerType,
     });
   const signalCount = () =>
-    svg.children.filter((el) => el.attrs.visibility === "visible").length;
+    (overlay || svg).children.filter((el) => el.attrs.visibility === "visible")
+      .length;
+  const connections = () => {
+    const walk = (node) => [node, ...node.children.flatMap(walk)];
+    return walk(overlay || svg).filter(
+      (el) => el.attrs.class === "scene-connection",
+    );
+  };
   visible(true);
   advance(100);
   return {
     svg,
+    overlay,
     frames,
     document,
     window,
@@ -184,6 +200,7 @@ function mount({ reduced = false, width = 1440, height = 900 } = {}) {
     advance,
     pointer,
     signalCount,
+    connections,
     get writes() {
       return writes;
     },
@@ -227,6 +244,60 @@ test("SVG animation stops offscreen, in a hidden tab and on pause; all resources
     assert.equal(target.listeners.size, 0);
   assert.ok(env.observers.every((o) => o.disconnected));
   assert.equal(env.svg.children.length, 0);
+  assert.equal(env.overlay?.children.length ?? 0, 0);
+});
+
+test("hover stays active over controls and while scrolling at a stationary pointer", () => {
+  const env = mount();
+  const route = env.svg.children.find((el) => !el.attrs.visibility);
+  const packet = route.children.find((el) => el.attrs.class === "scene-packet");
+  const x = Number(packet.attrs.cx),
+    y = Number(packet.attrs.cy);
+  const connections = () => {
+    const walk = (node) => [node, ...node.children.flatMap(walk)];
+    return walk(env.overlay || env.svg).filter(
+      (el) => el.attrs.class === "scene-connection",
+    );
+  };
+  env.pointer("pointermove", x, y, true);
+  env.advance(300);
+  assert.ok(
+    connections().some((el) => Number(el.attrs.opacity) > 0.01),
+    "control hover must keep tracking",
+  );
+  env.window.scrollY = 600;
+  env.window.fire("scroll");
+  env.advance(800);
+  assert.ok(
+    connections().some((el) => Number(el.attrs.opacity) > 0.01),
+    "scroll must preserve viewport pointer",
+  );
+  const cursor = env.overlay.children.find(
+    (el) => el.attrs.class === "scene-cursor",
+  );
+  assert.equal(cursor.attrs.transform, `translate(${x} ${y})`);
+  env.pointer("pointerdown", 620, 410);
+  env.pointer("pointerup", 620, 410);
+  env.advance(100);
+  assert.equal(
+    env.overlay.children.find((el) => el.attrs.visibility === "visible").attrs
+      .transform,
+    "translate(620 410)",
+  );
+  env.unmount();
+});
+
+test("text region boundaries never abruptly suppress a whole route", () => {
+  const outside = mount();
+  const inside = mount({
+    quiet: [{ left: -10000, right: 10000, top: -10000, bottom: 10000 }],
+  });
+  assert.equal(
+    inside.svg.children[0].attrs.opacity,
+    outside.svg.children[0].attrs.opacity,
+  );
+  outside.unmount();
+  inside.unmount();
 });
 
 test("reduced motion is static during taps and scrolls, and updates when the preference changes", () => {
@@ -275,7 +346,8 @@ test("controls, selection drags, scroll gestures and cancelled touches never emi
 
 test("repeated taps reuse bounded SVG nodes, produce sparks, and expire", () => {
   const env = mount();
-  const childCount = env.svg.children.length;
+  const childCount =
+    env.svg.children.length + (env.overlay?.children.length ?? 0);
   for (let i = 0; i < 30; i++) {
     env.pointer("pointerdown");
     env.pointer("pointerup");
@@ -283,9 +355,12 @@ test("repeated taps reuse bounded SVG nodes, produce sparks, and expire", () => 
     assert.ok(
       env.signalCount() > 0 && env.signalCount() <= scene.siteScene.maxPulses,
     );
-    assert.equal(env.svg.children.length, childCount);
+    assert.equal(
+      env.svg.children.length + (env.overlay?.children.length ?? 0),
+      childCount,
+    );
   }
-  const signal = env.svg.children.find(
+  const signal = (env.overlay || env.svg).children.find(
     (el) => el.attrs.visibility === "visible",
   );
   assert.ok(
@@ -309,25 +384,44 @@ test("mobile reduces SVG object count; pointer response stays local and fades on
   desktop.pointer("pointermove", x, y, false, "touch");
   desktop.advance(100);
   assert.ok(
-    desktop.svg.children
-      .filter((el) => !el.attrs.visibility)
-      .every((el) => Number(el.children[3].attrs.opacity) === 0),
+    desktop.connections().every((el) => Number(el.attrs.opacity) === 0),
   );
   desktop.pointer("pointermove", x, y);
   desktop.advance(100);
-  const connected = desktop.svg.children.filter(
-    (el) => !el.attrs.visibility && Number(el.children[3].attrs.opacity) > 0,
-  );
+  const connected = desktop
+    .connections()
+    .filter((el) => Number(el.attrs.opacity) > 0);
   assert.ok(
     connected.length > 0 && connected.length < desktop.svg.children.length / 2,
   );
   desktop.root.fire("pointerleave");
   desktop.advance(2500);
   assert.ok(
-    desktop.svg.children
-      .filter((el) => !el.attrs.visibility)
-      .every((el) => Number(el.children[3].attrs.opacity) < 0.001),
+    desktop.connections().every((el) => Number(el.attrs.opacity) < 0.001),
   );
   mobile.unmount();
   desktop.unmount();
+});
+
+test("click shock displaces nearby objects while distant routes keep their calm motion", () => {
+  const control = mount();
+  const active = mount();
+  const routes = scene.createQueryRoutes(1440, 900);
+  const center = scene.pointOnRoute(routes[5], routes[5].length * 0.5);
+  // Match active frame cadence without applying a local force in the control.
+  control.pointer("pointermove", -10000, -10000);
+  active.pointer("pointerdown", center.x + 50, center.y);
+  active.pointer("pointerup", center.x + 50, center.y);
+  control.advance(300);
+  active.advance(300);
+  assert.notEqual(
+    active.svg.children[5].attrs.transform,
+    control.svg.children[5].attrs.transform,
+  );
+  assert.equal(
+    active.svg.children.at(-1).attrs.transform,
+    control.svg.children.at(-1).attrs.transform,
+  );
+  control.unmount();
+  active.unmount();
 });

@@ -19,6 +19,8 @@ type RouteElements = {
   group: SVGGElement;
   packet: SVGCircleElement;
   connection: SVGPathElement;
+  highlight: SVGGElement;
+  response: SVGPathElement;
   center: Point;
 };
 type Signal = Point & { born: number; variant: number };
@@ -27,13 +29,13 @@ type SignalElements = {
   wave: SVGPathElement;
   sparks: SVGPathElement[];
 };
-type QuietArea = { left: number; top: number; right: number; bottom: number };
 
 export function SiteBackground() {
   const pathname = usePathname();
   const svgRef = useRef<SVGSVGElement>(null);
   const refreshRef = useRef<(() => void) | null>(null);
   const playback = useRef(true);
+  const interactionRef = useRef<SVGSVGElement>(null);
   const [running, setRunning] = useState(true);
 
   useEffect(() => {
@@ -43,7 +45,8 @@ export function SiteBackground() {
 
   useEffect(() => {
     const svg = svgRef.current;
-    if (!svg) return;
+    const overlay = interactionRef.current;
+    if (!svg || !overlay) return;
     const motion = matchMedia("(prefers-reduced-motion: reduce)");
     let width = 0,
       height = 0,
@@ -54,13 +57,15 @@ export function SiteBackground() {
       revealed = 0;
     let visible = false,
       disposed = false,
-      mobile = false,
-      scrollDirty = true;
+      mobile = false;
     let scrollOffset = window.scrollY;
     let routes: RouteElements[] = [],
       signals: Signal[] = [],
       pool: SignalElements[] = [];
-    let quiet: QuietArea[] = [];
+    let trails: (Point & { born: number })[] = [];
+    let lastTrail = -1;
+    let trailNodes: SVGCircleElement[] = [];
+    let cursor: SVGGElement;
     let down: (Point & { id: number; time: number; blocked: boolean }) | null =
       null;
     const pointer = { x: -1000, y: -1000, strength: 0, target: 0 };
@@ -76,35 +81,7 @@ export function SiteBackground() {
     };
     const blocked = (event: PointerEvent) =>
       event.target instanceof Element && !!event.target.closest(controls);
-    const measureQuiet = () => {
-      scrollOffset = window.scrollY;
-      quiet = [
-        ...document.querySelectorAll(
-          ".hero-copy,.hero-kicker,.section-heading,.docs-content,.lost-description,.quick-answer-content,.reading-copy,.footer-content",
-        ),
-      ].flatMap((el) => {
-        const r = el.getBoundingClientRect();
-        return r.bottom > 0 && r.top < height
-          ? [
-              {
-                left: r.left - 20,
-                right: r.right + 20,
-                top: r.top - 18,
-                bottom: r.bottom + 18,
-              },
-            ]
-          : [];
-      });
-      scrollDirty = false;
-    };
-    const toneAt = (p: Point) =>
-      quiet.some(
-        (r) => p.x > r.left && p.x < r.right && p.y > r.top && p.y < r.bottom,
-      )
-        ? 0.14
-        : 1;
     const render = () => {
-      if (scrollDirty) measureQuiet();
       const calm = motion.matches || !playback.current;
       revealed = calm ? 1 : Math.max(revealed, Math.min(1, clock / 1.4));
       const entrance = revealed;
@@ -113,7 +90,15 @@ export function SiteBackground() {
         1 - Math.max(0, clock - lastInput - config.idleAfter) * 0.15,
       );
       for (const item of routes) {
-        const { route, center, group, packet, connection } = item;
+        const {
+          route,
+          center,
+          group,
+          packet,
+          connection,
+          highlight,
+          response,
+        } = item;
         const parallax = calm
           ? 0
           : Math.sin(scrollOffset * 0.0015 + route.phase * 4) *
@@ -128,20 +113,35 @@ export function SiteBackground() {
         const dx = center.x - pointer.x,
           dy = center.y + parallax - pointer.y;
         const distance = Math.hypot(dx, dy);
-        const force =
+        let force =
           Math.max(0, 1 - distance / config.pointerRadius) ** 2 *
           pointer.strength *
           config.pointerForce;
-        const x = driftX + (dx / (distance || 1)) * force,
-          y = parallax + driftY + (dy / (distance || 1)) * force;
-        const tone = toneAt({ x: center.x + x, y: center.y + y });
-        group.setAttribute(
-          "transform",
-          `translate(${x.toFixed(2)} ${y.toFixed(2)})`,
-        );
+        let shockX = 0,
+          shockY = 0,
+          energy = 0;
+        for (const signal of signals) {
+          const age = (clock - signal.born) / config.pulseLife;
+          const sx = center.x - signal.x,
+            sy = center.y + parallax - signal.y;
+          const sd = Math.hypot(sx, sy);
+          const reach = Math.max(0, 1 - sd / (config.pulseRadius + 60));
+          const ring =
+            Math.exp(-Math.pow((sd - age * config.pulseRadius) / 65, 2)) *
+            (1 - age) *
+            reach;
+          shockX += (sx / (sd || 1)) * ring * 42;
+          shockY += (sy / (sd || 1)) * ring * 42;
+          energy = Math.min(1, energy + ring * 2);
+        }
+        force *= 0.8 + Math.sin(clock * 2 + route.phase * 6) * 0.2;
+        const x = driftX + (dx / (distance || 1)) * force + shockX,
+          y = parallax + driftY + (dy / (distance || 1)) * force + shockY;
+        const transform = `translate(${x.toFixed(2)} ${y.toFixed(2)})`;
+        group.setAttribute("transform", transform);
         group.setAttribute(
           "opacity",
-          String((0.45 + route.depth * 0.5) * entrance * tone),
+          String((0.45 + route.depth * 0.5) * entrance),
         );
         const travel =
           (route.phase * route.length +
@@ -160,14 +160,50 @@ export function SiteBackground() {
         );
         connection.setAttribute(
           "opacity",
-          String(proximity * pointer.strength * toneAt(pointer)),
+          String(proximity ** 2 * pointer.strength * 0.75),
         );
         if (proximity > 0 && pointer.strength > 0.01)
           connection.setAttribute(
             "d",
             `M${p.x} ${p.y}H${pointer.x - x}V${pointer.y - y}`,
           );
+        highlight.setAttribute("transform", transform);
+        highlight.setAttribute(
+          "opacity",
+          String(
+            Math.min(
+              0.65,
+              proximity ** 2 * pointer.strength * 0.65 + energy * 0.6,
+            ),
+          ),
+        );
+        response.setAttribute(
+          "d",
+          `M${[-28, -14, 0, 14, 28]
+            .map((offset) => {
+              const q = pointOnRoute(
+                route,
+                Math.max(0, Math.min(route.length - 0.001, travel + offset)),
+              );
+              return `${q.x} ${q.y}`;
+            })
+            .join("L")}`,
+        );
       }
+      cursor.setAttribute("transform", `translate(${pointer.x} ${pointer.y})`);
+      cursor.setAttribute("opacity", String(pointer.strength * 0.24));
+      trailNodes.forEach((node, i) => {
+        const trail = trails[i];
+        if (!trail) {
+          node.setAttribute("opacity", "0");
+          return;
+        }
+        const age = (clock - trail.born) / config.trailLife;
+        node.setAttribute("cx", String(trail.x));
+        node.setAttribute("cy", String(trail.y));
+        node.setAttribute("r", String(3 + age * 14));
+        node.setAttribute("opacity", String((1 - age) ** 2 * 0.28));
+      });
       pool.forEach((item, index) => {
         const signal = signals[index];
         if (!signal) {
@@ -181,10 +217,7 @@ export function SiteBackground() {
           "transform",
           `translate(${signal.x} ${signal.y})`,
         );
-        item.group.setAttribute(
-          "opacity",
-          String((1 - age) ** 2 * 0.65 * toneAt(signal)),
-        );
+        item.group.setAttribute("opacity", String((1 - age) ** 2 * 0.7));
         let path = `M${radius} 0A${radius} ${radius} 0 1 0 ${-radius} 0A${radius} ${radius} 0 1 0 ${radius} 0`;
         if (signal.variant === 1)
           path = `M0 ${-radius}L${radius} 0 0 ${radius} ${-radius} 0Z`;
@@ -229,6 +262,7 @@ export function SiteBackground() {
         pointer.strength +=
           (pointer.target - pointer.strength) * (1 - Math.exp(-dt * 6));
         signals = signals.filter((p) => clock - p.born < config.pulseLife);
+        trails = trails.filter((p) => clock - p.born < config.trailLife);
         render();
       }
       frame = requestAnimationFrame(tick);
@@ -240,6 +274,7 @@ export function SiteBackground() {
       if (disposed || !visible || document.hidden) return;
       if (motion.matches || !playback.current) {
         signals = [];
+        trails = [];
         pointer.strength = 0;
         render();
       } else frame = requestAnimationFrame(tick);
@@ -250,7 +285,9 @@ export function SiteBackground() {
       mobile = width < 768;
       if (!width || !height) return;
       svg.setAttribute("viewBox", `0 0 ${width} ${height}`);
+      overlay.setAttribute("viewBox", `0 0 ${width} ${height}`);
       const fragment = document.createDocumentFragment();
+      const foreground = document.createDocumentFragment();
       routes = createQueryRoutes(width, height).map((route) => {
         const group = make("g");
         const path = make("path", {
@@ -274,9 +311,21 @@ export function SiteBackground() {
               ? `M${center.x - size} ${center.y - size}h${size * 2}v${size * 2}h${-size * 2}Z`
               : `M${center.x - size} ${center.y}h${size}v${-size}m0 ${size}h${size}v${size}`,
         });
-        group.append(path, mark, packet, connection);
+        group.append(path, mark, packet);
         fragment.append(group);
-        return { route, center, group, packet, connection };
+        const highlight = make("g");
+        const response = make("path", { class: "scene-response" });
+        highlight.append(response, connection);
+        foreground.append(highlight);
+        return {
+          route,
+          center,
+          group,
+          packet,
+          connection,
+          highlight,
+          response,
+        };
       });
       pool = Array.from({ length: config.maxPulses }, () => {
         const group = make("g", { visibility: "hidden" });
@@ -285,21 +334,43 @@ export function SiteBackground() {
           make("path", { class: "scene-spark" }),
         );
         group.append(wave, ...sparks);
-        fragment.append(group);
+        foreground.append(group);
         return { group, wave, sparks };
       });
       svg.replaceChildren(fragment);
+      trailNodes = Array.from({ length: config.maxTrails }, () =>
+        make("circle", { class: "scene-trail", opacity: 0 }),
+      );
+      cursor = make("g", { class: "scene-cursor", opacity: 0 });
+      cursor.append(
+        make("circle", { r: 38 }),
+        make("path", { d: "M-48 0h13M35 0h13M0-48v13M0 35v13" }),
+      );
+      foreground.append(...trailNodes, cursor);
+      overlay.replaceChildren(foreground);
       signals = [];
-      scrollDirty = true;
+      trails = [];
+      scrollOffset = window.scrollY;
       refresh();
     };
     const move = (event: PointerEvent) => {
-      if (!allowed() || event.pointerType === "touch" || blocked(event)) {
+      if (!allowed() || event.pointerType === "touch") {
         pointer.target = 0;
         return;
       }
       Object.assign(pointer, { x: event.clientX, y: event.clientY, target: 1 });
       lastInput = clock;
+      if (
+        clock - lastTrail > 0.035 &&
+        Math.hypot(
+          event.clientX - (trails.at(-1)?.x ?? -1000),
+          event.clientY - (trails.at(-1)?.y ?? -1000),
+        ) > 7
+      ) {
+        trails.push({ x: event.clientX, y: event.clientY, born: clock });
+        trails = trails.slice(-config.maxTrails);
+        lastTrail = clock;
+      }
     };
     const press = (event: PointerEvent) => {
       if (!event.isPrimary || event.button !== 0) return;
@@ -348,13 +419,13 @@ export function SiteBackground() {
       down = null;
     };
     const scroll = () => {
-      scrollDirty = true;
-      leave();
+      scrollOffset = window.scrollY;
+      down = null;
       if (motion.matches || !playback.current) refresh();
     };
     const visibility = () => {
       leave();
-      scrollDirty = true;
+      scrollOffset = window.scrollY;
       refresh();
     };
     const observer = new ResizeObserver(measure);
@@ -364,18 +435,27 @@ export function SiteBackground() {
       refresh();
     });
     intersection.observe(svg);
-    document.addEventListener("pointermove", move, { passive: true });
-    document.addEventListener("pointerdown", press, { passive: true });
-    document.addEventListener("pointerup", release, { passive: true });
+    document.addEventListener("pointermove", move, {
+      passive: true,
+      capture: true,
+    });
+    document.addEventListener("pointerdown", press, {
+      passive: true,
+      capture: true,
+    });
+    document.addEventListener("pointerup", release, {
+      passive: true,
+      capture: true,
+    });
     document.addEventListener("pointercancel", leave);
     document.documentElement.addEventListener("pointerleave", leave);
     document.addEventListener("visibilitychange", visibility);
     window.addEventListener("blur", leave);
     window.addEventListener("scroll", scroll, { passive: true });
     motion.addEventListener("change", refresh);
-    // The root layout survives client navigation; remeasure the new page's copy.
+    // Keep viewport coordinates and scroll parallax current across navigation.
     refreshRef.current = () => {
-      scrollDirty = true;
+      scrollOffset = window.scrollY;
       refresh();
     };
     measure();
@@ -385,9 +465,9 @@ export function SiteBackground() {
       refreshRef.current = null;
       observer.disconnect();
       intersection.disconnect();
-      document.removeEventListener("pointermove", move);
-      document.removeEventListener("pointerdown", press);
-      document.removeEventListener("pointerup", release);
+      document.removeEventListener("pointermove", move, true);
+      document.removeEventListener("pointerdown", press, true);
+      document.removeEventListener("pointerup", release, true);
       document.removeEventListener("pointercancel", leave);
       document.documentElement.removeEventListener("pointerleave", leave);
       document.removeEventListener("visibilitychange", visibility);
@@ -395,6 +475,7 @@ export function SiteBackground() {
       window.removeEventListener("scroll", scroll);
       motion.removeEventListener("change", refresh);
       svg.replaceChildren();
+      overlay.replaceChildren();
     };
   }, []);
 
@@ -403,6 +484,12 @@ export function SiteBackground() {
       <svg
         ref={svgRef}
         className="site-background"
+        aria-hidden="true"
+        focusable="false"
+      />
+      <svg
+        ref={interactionRef}
+        className="site-interactions"
         aria-hidden="true"
         focusable="false"
       />
