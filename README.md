@@ -35,13 +35,15 @@ Keep paragraph measures separate from the page width, and use `.section-split`
 for sections with introductory copy beside a data panel on larger screens.
 Check layout changes at 375, 768, 1024, 1440, 1920 and 2560px.
 
-The hero's full-width Canvas 2D scene uses the route, speed, lifetime, density,
-pixel budget and theme settings in `src/lib/hero-scene.ts`. Its decorative layer
-never captures input; parent pointer events distinguish taps from controls and
-scroll gestures. The labyrinth pause button also pauses the background. Reduced
-motion renders a static scene, and offscreen/hidden scenes stop their animation
-loop. `npm test` checks route movement, signal expiry and limits, lifecycle cleanup,
-reduced motion and the 4K pixel budget using Node's built-in test runner.
+The shared `SiteBackground` mounts once in the root layout, including docs and
+404 pages. Its fixed SVG spans the viewport, keeping the same scene across
+section boundaries without allocating a page-height drawing surface. Route,
+speed, lifetime and density settings live in `src/lib/site-scene.ts`; theme colors
+live in `src/styles/site-scene.css`. Passive document pointer events distinguish
+taps from controls, selection and scroll gestures. The corner background button
+pauses the scene independently of the hero illustration. Reduced motion renders
+a static scene; hidden scenes stop their animation loop. `npm test` covers the
+route math, signal limits/expiry and animation lifecycle with Node's test runner.
 
 ## Production
 

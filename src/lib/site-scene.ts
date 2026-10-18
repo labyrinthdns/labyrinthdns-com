@@ -1,24 +1,19 @@
 // Limits are shared by the scene lifecycle and drawing code. Units: CSS px / seconds.
-export const heroScene = {
+export const siteScene = {
   seed: 731,
-  areaPerRoute: 26000,
-  routes: { mobile: 18, desktop: 64 },
-  dpr: { mobile: 1.25, desktop: 1.5 },
-  maxPixels: 5_000_000,
+  areaPerRoute: 42000,
+  routes: { mobile: 12, desktop: 48 },
   pointerRadius: 180,
-  pointerForce: 14,
-  speed: 34,
+  pointerForce: 12,
+  speed: 18,
   idleAfter: 5,
   idleIntensity: 0.42,
-  pulseLife: 1.65,
-  pulseRadius: 225,
+  pulseLife: 1.8,
+  pulseRadius: 220,
   maxPulses: 5,
-  trailLife: 0.75,
-  maxTrails: 16,
   tapDistance: 9,
   tapDuration: 0.65,
-  light: { route: "#3b197d", query: "#ad6808", opacity: 0.19 },
-  dark: { route: "#c6a6ff", query: "#f3b54e", opacity: 0.24 },
+  fps: { mobile: 24, idle: 30, active: 60 },
 } as const;
 
 export type Point = { x: number; y: number };
@@ -30,12 +25,12 @@ export type QueryRoute = {
 };
 
 export function createQueryRoutes(width: number, height: number): QueryRoute[] {
-  let seed: number = heroScene.seed;
+  let seed: number = siteScene.seed;
   const random = () => ((seed = (seed * 16807) % 2147483647) - 1) / 2147483646;
   const mobile = width < 768;
   const count = Math.min(
-    mobile ? heroScene.routes.mobile : heroScene.routes.desktop,
-    Math.max(12, Math.round((width * height) / heroScene.areaPerRoute)),
+    mobile ? siteScene.routes.mobile : siteScene.routes.desktop,
+    Math.max(10, Math.round((width * height) / siteScene.areaPerRoute)),
   );
   return Array.from({ length: count }, (_, index) => {
     // Distribute by strata rather than clustering random particles in a corner.

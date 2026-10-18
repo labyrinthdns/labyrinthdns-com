@@ -7,7 +7,6 @@ import { ArrowDown, ArrowUpRight, Pause, Play } from "lucide-react";
 import { site } from "@/lib/site";
 import { CopyCommand } from "@/components/copy-command";
 import { MazeMap } from "@/components/maze-map";
-import { HeroBackground } from "@/components/hero-background";
 
 export function Hero({ version = site.version }: { version?: string }) {
   const reduce = useReducedMotion();
@@ -15,7 +14,6 @@ export function Hero({ version = site.version }: { version?: string }) {
   const [record, setRecord] = useState<"A" | "AAAA">("A");
   return (
     <section id="top" className="hero-section">
-      <HeroBackground running={running} />
       <div className="site-container hero-content">
         <div className="hero-kicker">
           <span>

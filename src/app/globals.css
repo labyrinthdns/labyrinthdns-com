@@ -1,7 +1,7 @@
 @import "tailwindcss";
 @import "../styles/design-tokens.css";
 @import "../styles/layout.css";
-@import "../styles/hero-scene.css";
+@import "../styles/site-scene.css";
 
 @custom-variant dark (&:where(.dark, .dark *));
 
@@ -511,13 +511,13 @@ body {
   font-size: 10px;
 }
 #dashboard {
-  background: var(--raised);
+  background: color-mix(in srgb, var(--raised) 68%, transparent);
 }
 #performance {
-  background: var(--surface);
+  background: color-mix(in srgb, var(--surface) 60%, transparent);
 }
 #install {
-  background: var(--raised);
+  background: color-mix(in srgb, var(--raised) 68%, transparent);
 }
 main > section {
   scroll-margin-top: 105px;

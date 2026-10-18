@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { createQueryRoutes, pointOnRoute } from "../src/lib/hero-scene.ts";
+import { createQueryRoutes, pointOnRoute } from "../src/lib/site-scene.ts";
 
 test("packet movement follows corners at a constant distance per second", () => {
   const route = {
@@ -28,9 +28,9 @@ test("resize back to the same dimensions restores the same scene", () => {
 
 test("mobile and 4K scenes remain bounded and span the available width", () => {
   for (const [width, height, limit] of [
-    [375, 1400, 18],
-    [768, 1200, 64],
-    [3840, 1200, 64],
+    [375, 1400, 12],
+    [768, 1200, 48],
+    [3840, 1200, 48],
   ]) {
     const routes = createQueryRoutes(width, height);
     assert.ok(routes.length <= limit);

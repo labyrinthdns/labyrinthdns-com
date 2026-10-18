@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import { Inter, JetBrains_Mono, Playfair_Display } from "next/font/google";
 import "./globals.css";
 import { ThemeProvider } from "@/components/theme-provider";
+import { SiteBackground } from "@/components/site-background";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -43,12 +44,14 @@ export const metadata: Metadata = {
     url: "https://labyrinthdns.com",
     siteName: "Labyrinth DNS",
     type: "website",
-    images: [{
-      url: "/og.png",
-      width: 1200,
-      height: 630,
-      alt: "Labyrinth DNS — Every query. A clear path. Pure Go, self-hosted, zero dependencies.",
-    }],
+    images: [
+      {
+        url: "/og.png",
+        width: 1200,
+        height: 630,
+        alt: "Labyrinth DNS — Every query. A clear path. Pure Go, self-hosted, zero dependencies.",
+      },
+    ],
   },
   twitter: {
     card: "summary_large_image",
@@ -78,13 +81,16 @@ export default function RootLayout({
       className={`${inter.variable} ${playfair.variable} ${jetbrains.variable}`}
     >
       <body className="font-sans">
-        <a href="#main-content" className="skip-link">Skip to content</a>
+        <a href="#main-content" className="skip-link">
+          Skip to content
+        </a>
         <ThemeProvider
           attribute="class"
           defaultTheme="light"
           enableSystem
           disableTransitionOnChange
         >
+          <SiteBackground />
           {children}
         </ThemeProvider>
       </body>
