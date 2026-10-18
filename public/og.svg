@@ -1,19 +1,33 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630">
+  <defs>
+    <pattern id="grid" width="28" height="28" patternUnits="userSpaceOnUse"><circle cx="1" cy="1" r="1" fill="#d8c8f5" opacity=".12"/></pattern>
+  </defs>
   <rect width="1200" height="630" fill="#f7f5fa"/>
-  <path d="M80 80H1120" stroke="#ddd8e5"/>
-  <g transform="translate(80 104) scale(.48)">
+  <rect x="750" width="450" height="630" fill="#28124f"/>
+  <rect x="750" width="450" height="630" fill="url(#grid)"/>
+  <path d="M56 52H694M56 520H694" stroke="#ded8e8"/>
+  <g transform="translate(56 80) scale(.38)">
     <path fill="#3b197d" d="M31 10H18C12.5 10 8 14.5 8 20V152C8 157.5 12.5 162 18 162H111V145H25V27H31V10ZM38 10H51C56.5 10 61 14.5 61 20V110H126C131.5 110 136 114.5 136 120V137H119V127H54C48.5 127 44 122.5 44 117V27H38V10Z"/>
     <circle cx="127" cy="153" r="9" fill="#df880c"/>
   </g>
-  <text x="168" y="157" font-family="Arial,sans-serif" font-size="32" font-weight="800" fill="#130c24">LABYRINTH<tspan font-size="16" font-weight="400" fill="#6b6476"> DNS</tspan></text>
-  <text x="80" y="300" font-family="Arial,sans-serif" font-size="86" font-weight="600" letter-spacing="-4" fill="#130c24">Every query.</text>
-  <text x="80" y="398" font-family="Georgia,serif" font-size="86" font-style="italic" letter-spacing="-3" fill="#3b197d">A clear path.</text>
-  <circle cx="94" cy="468" r="6" fill="#df880c"/>
-  <text x="116" y="476" font-family="Arial,sans-serif" font-size="23" fill="#6b6476">Pure Go · Self-hosted · Zero dependencies</text>
-  <path d="M80 528H1120" stroke="#ddd8e5"/>
-  <text x="80" y="568" font-family="Arial,sans-serif" font-size="20" fill="#3b197d">labyrinthdns.com</text>
-  <g fill="none" stroke="#3b197d" stroke-width="10" opacity=".12">
-    <path d="M860 176H1110V440H860V236H1050V380H920V296H990"/>
+  <text x="126" y="123" font-family="Arial,sans-serif" font-size="29" font-weight="800" letter-spacing="-1" fill="#130c24">LABYRINTH<tspan dx="7" font-family="monospace" font-size="13" font-weight="400" letter-spacing="1" fill="#6b6476">DNS</tspan></text>
+  <text x="58" y="202" font-family="monospace" font-size="12" letter-spacing="2" fill="#6b6476">A RECURSIVE DNS RESOLVER. ENTIRELY YOURS.</text>
+  <text x="52" y="297" font-family="Arial,sans-serif" font-size="87" font-weight="600" letter-spacing="-4" fill="#130c24">Every query.</text>
+  <text x="52" y="392" font-family="Georgia,serif" font-size="87" font-style="italic" letter-spacing="-3" fill="#3b197d">A clear path.</text>
+  <circle cx="62" cy="458" r="5" fill="#df880c"/>
+  <text x="80" y="465" font-family="Arial,sans-serif" font-size="21" fill="#6b6476">Pure Go · Self-hosted · Zero dependencies</text>
+  <text x="56" y="564" font-family="Arial,sans-serif" font-size="20" font-weight="600" fill="#3b197d">labyrinthdns.com</text>
+  <text x="694" y="564" text-anchor="end" font-family="monospace" font-size="12" letter-spacing="1" fill="#6b6476">OPEN SOURCE / MIT</text>
+  <text x="792" y="66" font-family="monospace" font-size="11" letter-spacing="2" fill="#c1acdf">THE RESOLUTION LABYRINTH</text>
+  <g fill="none" stroke="#6b469d" stroke-width="2">
+    <path d="M792 120H1158V486H792V152H1126V454H824V184H1094V422H856V216H1062V390H888V248H1030V358H920V280H998V326H952"/>
+    <path d="M824 120V144M856 152V176M888 184V208M920 216V240M952 248V272M1062 152V184M1126 248H1158M1094 312H1126M1062 422V454M998 390V422M920 454V486M792 358H824"/>
   </g>
-  <circle cx="990" cy="296" r="10" fill="#df880c"/>
+  <path d="M792 104V120H1158V486H792V152H1126V454H824V184H1094V422H856V216H1062V390H888V248H1030V358H920V280H998V326H952" fill="none" stroke="#df880c" stroke-width="4" stroke-linejoin="round"/>
+  <circle cx="792" cy="104" r="6" fill="#f7f5fa"/>
+  <circle cx="952" cy="326" r="14" fill="#df880c" opacity=".14"/>
+  <circle cx="952" cy="326" r="6" fill="#df880c"/>
+  <path d="M792 532H1158" stroke="#6b469d"/>
+  <text x="792" y="564" font-family="monospace" font-size="11" fill="#c1acdf">ROOT → TLD → AUTHORITATIVE</text>
+  <circle cx="1153" cy="560" r="4" fill="#df880c"/>
 </svg>

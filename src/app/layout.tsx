@@ -43,7 +43,12 @@ export const metadata: Metadata = {
     url: "https://labyrinthdns.com",
     siteName: "Labyrinth DNS",
     type: "website",
-    images: ["/og.png"],
+    images: [{
+      url: "/og.png",
+      width: 1200,
+      height: 630,
+      alt: "Labyrinth DNS — Every query. A clear path. Pure Go, self-hosted, zero dependencies.",
+    }],
   },
   twitter: {
     card: "summary_large_image",
