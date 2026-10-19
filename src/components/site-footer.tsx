@@ -74,9 +74,6 @@ export function SiteFooter({ version = site.version }: { version?: string }) {
             © {new Date().getFullYear()} OXOGNET OÜ · Labyrinth DNS · MIT
           </span>
           <span className="tabular-nums">{version}</span>
-          <span className="tracking-wider">
-            Made in Estonia, shipped worldwide.
-          </span>
         </div>
       </div>
     </footer>
