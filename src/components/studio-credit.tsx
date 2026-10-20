@@ -2,11 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { useInView, useReducedMotion } from "motion/react";
-import { Manrope, Space_Grotesk } from "next/font/google";
 import { ArrowUpRight } from "lucide-react";
-
-const body = Manrope({ subsets: ["latin"], display: "swap" });
-const display = Space_Grotesk({ subsets: ["latin"], display: "swap", variable: "--studio-display" });
 
 export function StudioCredit() {
   const ref = useRef<HTMLAnchorElement>(null);
@@ -21,7 +17,7 @@ export function StudioCredit() {
   }, []);
 
   return (
-    <a ref={ref} id="studio" className={`studio-credit ${body.className} ${display.variable}`} href="https://oxog.net" data-animate={seen && visible && !reduce}>
+    <a ref={ref} id="studio" className="studio-credit" href="https://oxog.net" data-animate={seen && visible && !reduce}>
       <svg className="studio-mark" viewBox="0 0 200 130" fill="none" aria-hidden="true">
         <path d="M93 56 72 35C49 13 14 24 9 53 3 84 23 104 46 103" stroke="#ed0878" strokeWidth="12" />
         <path d="M146 25c24-7 45 10 47 34 3 26-16 46-39 44-14-1-24-11-41-27" stroke="#ed0878" strokeWidth="12" />

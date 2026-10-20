@@ -2,6 +2,8 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useRef } from "react";
+import { ChevronDown } from "lucide-react";
 import { docsNav } from "@/lib/site";
 import { cn } from "@/lib/utils";
 
@@ -38,17 +40,22 @@ export function DocsSidebarNav() {
 
 export function DocsMobileNav() {
   const pathname = usePathname();
+  const menu = useRef<HTMLDetailsElement>(null);
+  const current = docsNav.find((item) => isActive(item.href, pathname));
 
   return (
-    <nav
-      aria-label="Documentation"
-      className="flex gap-1 overflow-x-auto rounded-lg border border-border bg-surface p-1.5"
-    >
+    <details ref={menu} className="docs-mobile-menu">
+      <summary>
+        <span>Documentation<strong>{current?.label ?? "Browse guides"}</strong></span>
+        <ChevronDown size={18} aria-hidden="true" />
+      </summary>
+      <nav aria-label="Documentation">
       {docsNav.map((item) => (
         <Link
           key={item.href}
           href={item.href}
           aria-current={isActive(item.href, pathname) ? "page" : undefined}
+          onClick={() => { if (menu.current) menu.current.open = false; }}
           className={cn(
             "shrink-0 rounded-md px-3 py-1.5 text-sm transition-colors",
             isActive(item.href, pathname)
@@ -59,6 +66,7 @@ export function DocsMobileNav() {
           {item.label}
         </Link>
       ))}
-    </nav>
+      </nav>
+    </details>
   );
 }

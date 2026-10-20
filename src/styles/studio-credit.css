@@ -36,7 +36,7 @@
 }
 .studio-credit h2 {
   margin: 0;
-  font-family: var(--studio-display), sans-serif;
+  font-family: var(--font-display);
   font-size: 35px;
   font-weight: 500;
   line-height: 1.12;

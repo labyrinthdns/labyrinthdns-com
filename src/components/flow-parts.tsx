@@ -46,6 +46,7 @@ export type TraceNode = ClientFlowNode | LabyrinthFlowNode | ServerFlowNode;
 export type ThreadEdgeData = {
   state?: FlowNodeState;
   dir?: ThreadDir;
+  running?: boolean;
 } & Record<string, unknown>;
 export type ThreadEdgeType = Edge<ThreadEdgeData, "thread">;
 
@@ -187,6 +188,7 @@ export const ThreadEdge = memo(function ThreadEdge(
   }
 
   const done = state === "done";
+  const running = data?.running ?? true;
   const beadPath = data?.dir === "in" ? reversePath : path;
 
   return (
@@ -198,9 +200,9 @@ export const ThreadEdge = memo(function ThreadEdge(
         stroke="var(--primary)"
         strokeWidth={done ? 1.75 : 2.5}
         opacity={done ? 0.7 : 1}
-        className={done ? undefined : "thread-dash"}
+        className={done || !running ? undefined : "thread-dash"}
       />
-      {state === "active" && !reduce && (
+      {state === "active" && !reduce && running && (
         <circle r="5" fill="var(--primary)" stroke="var(--bg)" strokeWidth={1.5}>
           <animateMotion dur="0.95s" repeatCount="indefinite" path={beadPath} />
         </circle>

@@ -38,6 +38,12 @@ import {
 
 /* ---- Trace data ------------------------------------------------------ */
 const subscribeNoop = () => () => {};
+const subscribeVisibility = (notify: () => void) => {
+  document.addEventListener("visibilitychange", notify);
+  return () => document.removeEventListener("visibilitychange", notify);
+};
+const isPageVisible = () => !document.hidden;
+const serverHidden = () => false;
 
 type Step = {
   node?: string;
@@ -241,7 +247,8 @@ export function ResolutionFlow() {
   > | null>(null);
 
   const sectionRef = useRef<HTMLElement>(null);
-  const inView = useInView(sectionRef, { once: true, margin: "-120px" });
+  const inView = useInView(canvasRef, { margin: "160px" });
+  const pageVisible = useSyncExternalStore(subscribeVisibility, isPageVisible, serverHidden);
   const reduce = useReducedMotion();
   const { resolvedTheme } = useTheme();
   const mounted = useSyncExternalStore(
@@ -280,10 +287,10 @@ export function ResolutionFlow() {
   // the button flips to "Replay" via the derived `finished` flag, so this
   // effect never sets state synchronously.
   useEffect(() => {
-    if (!playing || stepIndex < 0 || stepIndex >= steps.length - 1) return;
+    if (!playing || !inView || !pageVisible || stepIndex < 0 || stepIndex >= steps.length - 1) return;
     const timer = setTimeout(() => setStepIndex((s) => s + 1), 1150);
     return () => clearTimeout(timer);
-  }, [playing, stepIndex]);
+  }, [playing, stepIndex, inView, pageVisible]);
 
   // Apply the derived node/edge states for the current step.
   useEffect(() => {
@@ -299,11 +306,11 @@ export function ResolutionFlow() {
         const s = edgeStates.get(e.id);
         return {
           ...e,
-          data: { ...e.data, state: s?.state ?? "idle", dir: s?.dir ?? "out" },
+          data: { ...e.data, state: s?.state ?? "idle", dir: s?.dir ?? "out", running: playing && inView && pageVisible },
         };
       }),
     );
-  }, [stepIndex, setNodes, setEdges]);
+  }, [stepIndex, setNodes, setEdges, playing, inView, pageVisible]);
 
   // Keep the newest log line visible.
   useEffect(() => {
@@ -449,7 +456,7 @@ export function ResolutionFlow() {
                   {steps.slice(0, stepIndex + 1).map((step, i) => (
                     <motion.p
                       key={i}
-                      initial={reduce ? false : { opacity: 0, y: 6 }}
+                      initial={reduce ? false : { opacity: 1, y: 6 }}
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ duration: 0.25 }}
                       className={cn("mt-1.5 first:mt-0", logColor(step.log))}

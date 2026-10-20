@@ -55,7 +55,7 @@ export function ThemeToggle() {
             event.preventDefault();
             panel.current
               ?.querySelector<HTMLInputElement>("input:checked")
-              ?.focus();
+              ?.focus({ preventScroll: true });
           }}
         >
           <div className="appearance-heading">

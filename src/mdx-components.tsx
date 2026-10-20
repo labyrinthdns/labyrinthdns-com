@@ -56,18 +56,21 @@ export function useMDXComponents(components: MDXComponents): MDXComponents {
     ),
     pre: (props) => (
       <pre
+        tabIndex={0}
+        aria-label="Code example"
         className="mdx-pre mt-5 overflow-x-auto rounded-lg border border-border bg-raised/40 p-4 font-mono text-[13px] leading-relaxed"
         {...props}
       />
     ),
     table: (props) => (
-      <div className="mt-6 overflow-x-auto rounded-lg border border-border">
+      <div tabIndex={0} role="region" aria-label="Documentation table" className="mt-6 overflow-x-auto rounded-lg border border-border">
         <table className="w-full border-collapse text-sm" {...props} />
       </div>
     ),
     thead: (props) => <thead className="bg-raised/50" {...props} />,
     th: (props) => (
       <th
+        scope="col"
         className="border-b border-border px-4 py-2.5 text-left font-mono text-xs font-medium uppercase tracking-wider text-muted"
         {...props}
       />

@@ -93,7 +93,7 @@ export function SiteHeader({ stars = site.stars }: { stars?: number }) {
             ))}
         </nav>
 
-        <div className="flex items-center gap-2">
+        <div className="header-actions flex items-center gap-2">
           <a
             href={site.github}
             target="_blank"

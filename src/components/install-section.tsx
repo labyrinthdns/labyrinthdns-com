@@ -178,7 +178,7 @@ export function InstallSection({
                 <AnimatePresence mode="wait" initial={false}>
                   <motion.div
                     key={tab.id}
-                    initial={reduce ? false : { opacity: 0, y: 8 }}
+                    initial={reduce ? false : { opacity: 1, y: 8 }}
                     animate={{ opacity: 1, y: 0 }}
                     exit={reduce ? undefined : { opacity: 0, y: -8 }}
                     transition={{ duration: 0.22, ease: [0.2, 0, 0, 1] }}

@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { SiteHeader } from "@/components/site-header";
 import { SiteFooter } from "@/components/site-footer";
 import { DocsMobileNav, DocsSidebarNav } from "@/components/docs-nav";
+import { getRepoStats } from "@/lib/github";
 
 export const metadata: Metadata = {
   title: {
@@ -12,20 +13,21 @@ export const metadata: Metadata = {
     "Installation, quick start and configuration guides for Labyrinth DNS — the pure Go recursive resolver.",
 };
 
-export default function DocsLayout({
+export default async function DocsLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const stats = await getRepoStats();
   return (
     <>
-      <SiteHeader />
+      <SiteHeader stars={stats.stars} />
       <div className="site-container docs-layout">
         <aside
           aria-label="Documentation sidebar"
           className="hidden w-56 shrink-0 lg:block"
         >
-          <div className="sticky top-24 py-12">
+          <div className="docs-sidebar-scroll sticky top-24 py-12">
             <DocsSidebarNav />
           </div>
         </aside>
@@ -38,7 +40,7 @@ export default function DocsLayout({
           </main>
         </div>
       </div>
-      <SiteFooter />
+      <SiteFooter version={stats.version} />
     </>
   );
 }

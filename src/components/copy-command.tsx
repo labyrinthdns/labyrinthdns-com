@@ -2,28 +2,28 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { Tooltip } from "radix-ui";
-import { Check, Copy } from "lucide-react";
+import { Check, Copy, CircleAlert } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 function useCopy(timeout = 2000) {
-  const [copied, setCopied] = useState(false);
+  const [status, setStatus] = useState<"idle" | "copied" | "error">("idle");
 
   useEffect(() => {
-    if (!copied) return;
-    const timer = setTimeout(() => setCopied(false), timeout);
+    if (status === "idle") return;
+    const timer = setTimeout(() => setStatus("idle"), timeout);
     return () => clearTimeout(timer);
-  }, [copied, timeout]);
+  }, [status, timeout]);
 
   const copy = useCallback(async (text: string) => {
     try {
       await navigator.clipboard.writeText(text);
-      setCopied(true);
+      setStatus("copied");
     } catch {
-      // Clipboard unavailable (insecure context or denied) — keep icon unchanged.
+      setStatus("error");
     }
   }, []);
 
-  return { copied, copy };
+  return { status, copy };
 }
 
 export function CopyButton({
@@ -35,7 +35,8 @@ export function CopyButton({
   className?: string;
   label?: string;
 }) {
-  const { copied, copy } = useCopy();
+  const { status, copy } = useCopy();
+  const message = status === "copied" ? "Copied" : status === "error" ? "Copy failed. Select the code and copy it manually." : label;
 
   return (
     <Tooltip.Provider delayDuration={200}>
@@ -44,16 +45,18 @@ export function CopyButton({
           <button
             type="button"
             onClick={() => copy(text)}
-            aria-label={copied ? "Copied" : label}
+            aria-label={message}
             className={cn(
               "inline-flex size-8 items-center justify-center rounded-md text-muted transition-colors hover:text-fg",
               className,
             )}
           >
-            {copied ? (
-              <Check className="size-4 text-success" />
+            {status === "copied" ? (
+              <Check aria-hidden="true" className="size-4 text-success" />
+            ) : status === "error" ? (
+              <CircleAlert aria-hidden="true" className="size-4 text-danger" />
             ) : (
-              <Copy className="size-4" />
+              <Copy aria-hidden="true" className="size-4" />
             )}
           </button>
         </Tooltip.Trigger>
@@ -62,11 +65,12 @@ export function CopyButton({
             sideOffset={6}
             className="z-50 rounded-md border border-border bg-raised px-2 py-1 text-xs text-fg shadow-2"
           >
-            {copied ? "Copied" : label}
+            {message}
             <Tooltip.Arrow className="fill-raised" />
           </Tooltip.Content>
         </Tooltip.Portal>
       </Tooltip.Root>
+      <span className="sr-only" role="status">{status !== "idle" ? message : ""}</span>
     </Tooltip.Provider>
   );
 }

@@ -67,7 +67,7 @@ export function Comparison() {
         </Reveal>
 
         <Reveal delay={0.1}>
-          <div className="mt-12 overflow-x-auto rounded-xl border border-border">
+          <div tabIndex={0} role="region" aria-label="Resolver comparison" className="mt-12 overflow-x-auto rounded-xl border border-border">
             <table className="w-full min-w-[720px] border-collapse bg-surface text-sm">
               <thead>
                 <tr className="border-b border-border text-left">

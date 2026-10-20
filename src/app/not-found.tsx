@@ -2,11 +2,13 @@ import Link from "next/link";
 import { ArrowUpRight } from "lucide-react";
 import { SiteHeader } from "@/components/site-header";
 import { LostSignal } from "@/components/lost-signal";
+import { getRepoStats } from "@/lib/github";
 
-export default function NotFound() {
+export default async function NotFound() {
+  const stats = await getRepoStats();
   return (
     <>
-      <SiteHeader />
+      <SiteHeader stars={stats.stars} />
       <main id="main-content" tabIndex={-1} className="site-container not-found">
         <div className="not-found-meta">
           <span>HTTP / 404</span>

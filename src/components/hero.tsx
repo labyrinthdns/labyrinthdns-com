@@ -24,7 +24,7 @@ export function Hero({ version = site.version }: { version?: string }) {
         <div className="hero-layout">
           <motion.div
             className="hero-copy"
-            initial={reduce ? false : { opacity: 0, y: 18 }}
+            initial={reduce ? false : { opacity: 1, y: 18 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.7 }}
           >
@@ -59,7 +59,7 @@ export function Hero({ version = site.version }: { version?: string }) {
           </motion.div>
           <motion.div
             className="resolver-art"
-            initial={reduce ? false : { opacity: 0, y: 28 }}
+            initial={reduce ? false : { opacity: 1, y: 28 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.85, delay: 0.15 }}
           >

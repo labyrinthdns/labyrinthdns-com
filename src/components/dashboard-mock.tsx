@@ -310,7 +310,7 @@ export function DashboardMock() {
                         <motion.div
                           key={row.id}
                           layout
-                          initial={reduce ? false : { opacity: 0, y: -14 }}
+                          initial={reduce ? false : { opacity: 1, y: -14 }}
                           animate={{ opacity: 1, y: 0 }}
                           exit={{ opacity: 0 }}
                           transition={{ duration: 0.3, ease: [0.2, 0, 0, 1] }}

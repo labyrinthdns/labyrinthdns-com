@@ -31,7 +31,7 @@ function StatCell({ stat }: { stat: Stat }) {
   const ref = useRef<HTMLDivElement>(null);
   const inView = useInView(ref, { once: true, margin: "-40px" });
   const reduce = useReducedMotion();
-  const value = useMotionValue(0);
+  const value = useMotionValue(stat.value);
   const text = useTransform(value, (v) => v.toFixed(stat.decimals ?? 0));
 
   useEffect(() => {
@@ -40,6 +40,7 @@ function StatCell({ stat }: { stat: Stat }) {
       value.set(stat.value);
       return;
     }
+    value.set(0);
     const controls = animate(value, stat.value, {
       duration: 1.4,
       ease: [0.2, 0, 0, 1],
@@ -53,7 +54,8 @@ function StatCell({ stat }: { stat: Stat }) {
       className="flex flex-col items-start gap-2 border-border/60 px-5 py-7 sm:py-9"
     >
       <div className="font-sans text-3xl font-medium tracking-[-0.06em] tabular-nums sm:text-4xl">
-        <motion.span>{text}</motion.span>
+        <span className="sr-only">{stat.value.toFixed(stat.decimals ?? 0)}</span>
+        <motion.span aria-hidden="true">{text}</motion.span>
         <span className="text-primary">{stat.unit}</span>
         {stat.suffix ? (
           <span className="text-primary">{stat.suffix}</span>
